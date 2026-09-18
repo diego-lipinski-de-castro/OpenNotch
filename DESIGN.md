@@ -41,37 +41,21 @@ typography:
 rounded:
   flare-active: "7px"
   flare-expanded: "10px"
-  lip-running: "9px"
-  lip-terminal: "12px"
-  lip-waiting: "14px"
+  lip-active: "12px"
   lip-expanded: "22px"
 spacing:
   hairline: "1px"
-  edge-running: "5px"
-  edge-terminal: "8px"
-  edge-waiting: "11px"
+  border: "10px"
   row: "9px"
   control: "10px"
   panel: "12px"
   panel-inset: "16px"
-  wing-running: "26px"
-  wing-terminal: "32px"
-  wing-waiting: "34px"
+  wing: "26px"
 components:
-  notch-collapsed-running:
+  notch-collapsed:
     backgroundColor: "{colors.body}"
-    rounded: "{rounded.lip-running}"
-    height: "37px"
-  notch-collapsed-waiting:
-    backgroundColor: "{colors.body}"
-    rounded: "{rounded.lip-waiting}"
-    height: "43px"
-  state-edge-running:
-    backgroundColor: "{colors.state-running}"
-    height: "{spacing.edge-running}"
-  state-edge-waiting:
-    backgroundColor: "{colors.state-waiting}"
-    height: "{spacing.edge-waiting}"
+    rounded: "{rounded.lip-active}"
+    height: "42px"
   panel:
     backgroundColor: "{colors.body}"
     rounded: "{rounded.lip-expanded}"
@@ -251,11 +235,9 @@ this.
 
 Depth is carried entirely by the silhouette. Three geometric moves do the work of
 an elevation scale: the outward flare at the top corners (`{rounded.flare-active}`
-collapsed, `{rounded.flare-expanded}` expanded), the corner radius at the bottom,
-and the depth of the lip below the cutout. The last two are not single values;
-they scale with the state, from `{spacing.edge-running}` to
-`{spacing.edge-waiting}`, with the radius tracking the lip so the corner never
-eats more than the lip is deep. Growing the flare and the radius together is what
+collapsed, `{rounded.flare-expanded}` expanded), the corner radius at the bottom
+(`{rounded.lip-active}` collapsed, `{rounded.lip-expanded}` expanded), and the
+depth of the border below the cutout (`{spacing.border}`). Growing the flare and the radius together is what
 reads as the hardware widening rather than a rectangle appearing underneath it.
 
 Idle is the exception that proves the rule: it paints nothing at all. The panel is
@@ -281,14 +263,6 @@ the vocabulary AppKit would have used. Cards, badges, pills, and containers are
 prohibited outright: a 424pt panel has no room for chrome, and chrome is the
 loudest way to announce that this was not shipped by the platform.
 
-### Named Rules
-
-**The Attention Budget Rule.** The collapsed indicator's area and brightness scale
-with how much the state needs a human. Running spends 26pt of wing and a 5pt edge
-at 38%; waiting spends 34pt and 11pt at full. A state that costs the same as every
-other state only says that something is happening, which the user already knew when
-they started the turn.
-
 ### The Notch Silhouette (signature component)
 
 The defining element, and the only custom drawing in the product.
@@ -298,10 +272,13 @@ The defining element, and the only custom drawing in the product.
   trick; without it the shape reads as a panel, with it the shape reads as the
   cutout growing.
 - **Fill:** `{colors.body}`, always. The silhouette is never tinted.
-- **States:** idle paints nothing. Running adds `{spacing.wing-running}` on each
-  side and a `{spacing.edge-running}` lip; waiting adds `{spacing.wing-waiting}` and
-  `{spacing.edge-waiting}`; done and failed sit between them. Expanded grows to
+- **States:** idle paints nothing. Active adds `{spacing.wing}` on each side and a
+  `{spacing.border}` border below, one size for every state. Expanded grows to
   `424px` wide with the radii stepping up together.
+- **Fill:** black, always, in every state. The frame says that something is
+  happening; the glyph inside it says what. Tinting the frame, lighting its edge, or
+  breathing it are all prohibited: a status light that glows is decoration, and the
+  hardware it imitates does not glow.
 - **Motion:** `smooth(duration: 0.24)` on hover, `smooth(duration: 0.30)` on
   becoming active. `smooth` is the system's spring with the bounce removed; a damped
   spring overshoots, and on a 92pt-per-side width change that overshoot reads as a
@@ -322,21 +299,6 @@ The defining element, and the only custom drawing in the product.
 - **Reduce Motion:** the arc and the pulse resolve to their static silhouettes. The
   dot is retained rather than swapped, because it is the one shape no other state
   uses.
-
-### Lit Edge
-
-The band of state color filling the lip, and the reason the collapsed state reads
-at the edge of vision instead of having to be looked at.
-
-- **Fill:** the state color at an opacity that scales with urgency: 38% for
-  running, 90% for done and failed, 100% for waiting.
-- **Motion:** only waiting breathes, easing between 50% and 100% over 1.2s.
-  Running holds still deliberately, because the client's mark is already turning
-  above it and two moving things in a 37pt indicator is one too many. Suppressed
-  under Reduce Motion, where the edge sits at full.
-- **Shape:** none of its own. It is clipped by the silhouette, so the corner radius
-  rounds its ends and it reads as the notch glowing along its bottom rather than as
-  a bar stuck underneath it.
 
 ### Session Row
 

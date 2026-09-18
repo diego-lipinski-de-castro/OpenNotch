@@ -107,8 +107,16 @@ final class NotchController {
         if Debug.enabled {
             NSLog("hover \(inside) mouse=\(mouse) frame=\(panel.frame) hot=\(hot)")
         }
+        // Resize first, then flip the flag.
+        //
+        // These used to run the other way round, and `setFrame(display: true)`
+        // forces a synchronous layout and draw. Doing that in the same turn that
+        // `hovered` changed made SwiftUI render the new value outside its
+        // animation transaction, so the panel snapped to full size and the
+        // spring never visibly ran. Growing the window first leaves the content
+        // untouched, and the flag then changes in a clean transaction.
+        updateLayout(hovered: inside)
         ui.hovered = inside
-        updateLayout()
     }
 
     // MARK: - Layout
@@ -118,8 +126,11 @@ final class NotchController {
             ?? NSScreen.main
     }
 
-    private func updateLayout() {
+    /// `hovered` overrides the model's current value, for the one case where the
+    /// window has to be resized before the model catches up.
+    private func updateLayout(hovered: Bool? = nil) {
         guard let screen = notchScreen() else { return }
+        let hovered = hovered ?? ui.hovered
 
         var m = NotchMetrics()
         if let left = screen.auxiliaryTopLeftArea,
@@ -139,10 +150,9 @@ final class NotchController {
         if ui.metrics != m { ui.metrics = m }
 
         let rows = max(store.activeSessions.count, 1)
-        let size = m.windowSize(expanded: ui.hovered,
+        let size = m.windowSize(expanded: hovered,
                                 active: store.overall.isVisible,
-                                rows: rows,
-                                state: store.overall.asSessionState)
+                                rows: rows)
         setWindowSize(size, on: screen)
     }
 

@@ -42,8 +42,8 @@ struct NotchRootView: View {
     private var rows: Int { max(store.activeSessions.count, 1) }
 
     private var m: NotchMetrics { ui.metrics }
-    private var bodyWidth: CGFloat { m.bodyWidth(expanded: expanded, state: state) }
-    private var bodyHeight: CGFloat { m.bodyHeight(expanded: expanded, rows: rows, state: state) }
+    private var bodyWidth: CGFloat { m.bodyWidth(expanded: expanded, active: active) }
+    private var bodyHeight: CGFloat { m.bodyHeight(expanded: expanded, active: active, rows: rows) }
     private var flare: CGFloat { m.topRadius(expanded: expanded, active: active) }
 
     /// Idle paints nothing at all.
@@ -57,7 +57,7 @@ struct NotchRootView: View {
 
     var body: some View {
         let shape = NotchShape(topRadius: flare,
-                               bottomRadius: m.bottomRadius(expanded: expanded, state: state))
+                               bottomRadius: m.bottomRadius(expanded: expanded, active: active))
         ZStack(alignment: .top) {
             shape.fill(Palette.body.opacity(active || expanded ? 1 : 0))
             content
@@ -86,23 +86,16 @@ struct NotchRootView: View {
     // MARK: - Collapsed
 
     private var collapsedContent: some View {
-        let wing = m.wing(state) + flare
-        return VStack(spacing: 0) {
-            HStack(spacing: 0) {
-                StatusGlyph(state: state, size: 13, style: primaryStyle)
-                    .frame(width: wing, alignment: .center)
+        HStack(spacing: 0) {
+            StatusGlyph(state: state, size: 13, style: primaryStyle)
+                .frame(width: m.wing + flare, alignment: .center)
 
-                Color.clear.frame(width: m.notchWidth)   // the physical cutout
+            Color.clear.frame(width: m.notchWidth)   // the physical cutout
 
-                trailingBadge
-                    .frame(width: wing, alignment: .center)
-            }
-            .frame(height: m.notchHeight)
-
-            StateEdge(state: state)
-                .frame(height: m.depth(state))
+            trailingBadge
+                .frame(width: m.wing + flare, alignment: .center)
         }
-        .frame(width: m.notchWidth + wing * 2)
+        .frame(height: m.notchHeight + m.depth)
     }
 
     /// The session the collapsed glyph speaks for: the most recent one whose
@@ -131,47 +124,6 @@ struct NotchRootView: View {
                 .font(.system(size: 9, weight: .medium, design: .rounded))
                 .monospacedDigit()
                 .foregroundStyle(tint.opacity(0.85))
-        }
-    }
-}
-
-/// The lit edge under the cutout, and the reason the collapsed state reads at
-/// the edge of vision rather than needing to be looked at. Its depth comes from
-/// `NotchMetrics.depth`; its brightness and whether it moves come from here.
-///
-/// Clipped by the silhouette, so the corner radius rounds its ends and it reads
-/// as the notch glowing along its bottom rather than as a bar stuck underneath.
-private struct StateEdge: View {
-    let state: SessionState
-
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var lit = false
-
-    var body: some View {
-        Rectangle()
-            .fill(Palette.color(for: state).opacity(peak * (lit ? 1 : trough)))
-            .onAppear(perform: start)
-            .id(state)
-    }
-
-    private var peak: Double {
-        switch state {
-        case .idle:         return 0
-        case .running:      return 0.38
-        case .waiting:      return 1
-        case .done, .error: return 0.9
-        }
-    }
-
-    /// Only waiting breathes. Running holding still is the point: a turn in
-    /// flight is the normal case and does not deserve movement down here, where
-    /// the client's own mark is already turning.
-    private var trough: Double { state == .waiting ? 0.5 : 1 }
-
-    private func start() {
-        guard state == .waiting, !reduceMotion else { lit = true; return }
-        withAnimation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true)) {
-            lit = true
         }
     }
 }

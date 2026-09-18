@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-18T16:31:05Z",
+  "generatedAt": "2026-09-18T16:41:18Z",
   "title": "Design System: OpenNotch",
   "extensions": {
     "colorMeta": {
@@ -268,11 +268,6 @@
         "name": "stale-after",
         "value": "30min",
         "purpose": "An interrupted turn may never report a closing state, so it stops being shown."
-      },
-      {
-        "name": "edge-breathe",
-        "value": "easeInOut 1.2s, autoreverse, repeat forever",
-        "purpose": "The lit edge under the cutout, easing between 50% and 100%. Waiting only; running holds still because the client's mark is already turning above it."
       }
     ],
     "breakpoints": [
@@ -376,11 +371,6 @@
         "name": "The Seam Rule",
         "section": "elevation",
         "body": "Every geometry change is judged by one test: does the panel still read as the notch itself, or as a rectangle stuck underneath it? When a feature and the seam conflict, the seam wins."
-      },
-      {
-        "name": "The Attention Budget Rule",
-        "section": "components",
-        "body": "The collapsed indicator's area and brightness scale with how much the state needs a human. Running spends 26pt of wing and a 5pt edge at 38%; waiting spends 34pt and 11pt at full. A state that costs the same as every other state only says that something is happening, which the user already knew when they started the turn."
       }
     ],
     "dos": [
@@ -403,7 +393,8 @@
       "Don't introduce untinted black or white outside the panel body.",
       "Don't add a display typeface, a custom font, or a weight above 600.",
       "Don't add a tunable to avoid making a decision. The defaults are the product.",
-      "Don't use a system checkbox in the panel. It brings its own metrics and tinting, so it lines up with nothing and puts the only visible chrome in the product in the corner of an otherwise black panel."
+      "Don't use a system checkbox in the panel. It brings its own metrics and tinting, so it lines up with nothing and puts the only visible chrome in the product in the corner of an otherwise black panel.",
+      "Don't tint, light, or breathe the black frame around the cutout. The frame says that something is happening; the glyph inside it says what. A status light that glows is decoration, and the hardware it imitates does not glow."
     ]
   }
 }
