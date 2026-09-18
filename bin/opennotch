@@ -1,0 +1,284 @@
+#!/bin/sh
+# opennotch — report agent session state to the OpenNotch indicator.
+#
+# This is the whole integration surface. Any tool that can run a command on an
+# event can drive the notch; nothing about a client is baked into the app.
+#
+#   opennotch report --source claude-code --session abc --state running
+#   opennotch wrap --source shell --label "npm test" -- npm test
+#   opennotch clear --source claude-code --session abc
+#
+# See `opennotch help` for the full flag list.
+set -u
+
+SCHEMA=1
+ON_DIR="${OPENNOTCH_DIR:-$HOME/.opennotch}"
+SESSIONS="$ON_DIR/sessions"
+SOURCES="$ON_DIR/sources.json"
+
+die() { printf 'opennotch: %s\n' "$1" >&2; exit 2; }
+
+usage() {
+  cat <<'HELPTEXT'
+opennotch — report agent session state to the OpenNotch indicator.
+
+USAGE
+  opennotch report --source <id> --session <id> --state <state> [options]
+  opennotch wrap   --source <id> [--label <text>] -- <command> [args...]
+  opennotch clear  --source <id> --session <id>
+  opennotch source --id <id> [--name <text>] [--symbol <sf>] [--accent <#hex>]
+  opennotch list | dir | prune | help
+
+STATES
+  idle      registered, nothing happening
+  running   a turn is in flight
+  waiting   blocked on the human (permission prompt, question)
+  done      turn finished
+  error     turn failed
+
+REPORT OPTIONS
+  --label <text>      display name; defaults to the basename of --cwd
+  --cwd <path>        working directory (default: $PWD)
+  --pid <n>           owning process, pruned when it dies
+  --owner <pattern>   find the pid by walking ancestors for a matching command
+  --activity <path>   file whose mtime proves the session is still alive
+  --if-state <state>  only apply when the current state matches; else no-op
+
+NOTES
+  running keeps an existing start time, so heartbeats do not reset the timer.
+  done and error compute the turn duration from it.
+  State lives in $OPENNOTCH_DIR (default ~/.opennotch).
+HELPTEXT
+}
+
+# --- helpers ---------------------------------------------------------------
+
+json_escape() {
+  printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' | tr -d '\n\r\t'
+}
+
+slug() {
+  printf '%s' "$1" | tr -C 'A-Za-z0-9._-' '_' | cut -c1-96
+}
+
+# Read a field back out of a file we wrote ourselves (single-line JSON).
+read_str() { sed -n "s/.*\"$2\":\"\\([^\"]*\\)\".*/\\1/p" "$1" 2>/dev/null; }
+read_num() { sed -n "s/.*\"$2\":\\([0-9][0-9]*\\).*/\\1/p" "$1" 2>/dev/null; }
+
+# Walk up the process tree for a command matching $1; print its pid.
+find_owner() {
+  _p="${PPID:-0}"; _i=0
+  while [ "$_p" -gt 1 ] && [ "$_i" -lt 8 ]; do
+    case "$(ps -o comm= -p "$_p" 2>/dev/null)" in
+      *"$1"*) printf '%s' "$_p"; return 0 ;;
+    esac
+    _p=$(ps -o ppid= -p "$_p" 2>/dev/null | tr -d ' ')
+    [ -n "$_p" ] || break
+    _i=$((_i + 1))
+  done
+  return 1
+}
+
+session_file() { printf '%s/%s.%s.json' "$SESSIONS" "$(slug "$1")" "$(slug "$2")"; }
+
+valid_state() {
+  case "$1" in
+    idle|running|waiting|done|error) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+# --- report ----------------------------------------------------------------
+
+cmd_report() {
+  source='' session='' state='' label='' cwd='' pid='' owner='' activity='' ifstate=''
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --source)   source="${2:-}"; shift 2 ;;
+      --session)  session="${2:-}"; shift 2 ;;
+      --state)    state="${2:-}"; shift 2 ;;
+      --label)    label="${2:-}"; shift 2 ;;
+      --cwd)      cwd="${2:-}"; shift 2 ;;
+      --pid)      pid="${2:-}"; shift 2 ;;
+      --owner)    owner="${2:-}"; shift 2 ;;
+      --activity) activity="${2:-}"; shift 2 ;;
+      --if-state) ifstate="${2:-}"; shift 2 ;;
+      *) die "unknown option: $1" ;;
+    esac
+  done
+
+  [ -n "$source" ]  || die "--source is required"
+  [ -n "$session" ] || die "--session is required"
+  valid_state "$state" || die "--state must be idle|running|waiting|done|error"
+
+  mkdir -p "$SESSIONS" 2>/dev/null || exit 0
+  file=$(session_file "$source" "$session")
+  now=$(date +%s)
+
+  prev_state=''; prev_started=''; prev_label=''; prev_cwd=''; prev_activity=''; prev_pid=''
+  if [ -f "$file" ]; then
+    prev_state=$(read_str "$file" state)
+    prev_started=$(read_num "$file" started)
+    prev_label=$(read_str "$file" label)
+    prev_cwd=$(read_str "$file" cwd)
+    prev_activity=$(read_str "$file" activity)
+    prev_pid=$(read_num "$file" pid)
+  fi
+
+  # Guarded report: used by clients whose events fire outside a turn too.
+  if [ -n "$ifstate" ] && [ "$prev_state" != "$ifstate" ]; then
+    exit 0
+  fi
+
+  # Carry forward anything this call did not restate.
+  [ -n "$cwd" ] || cwd="${prev_cwd:-$PWD}"
+  [ -n "$label" ] || label="$prev_label"
+  [ -n "$label" ] || label=$(basename "$cwd" 2>/dev/null)
+  [ -n "$activity" ] || activity="$prev_activity"
+
+  if [ -z "$pid" ] && [ -n "$owner" ]; then
+    pid=$(find_owner "$owner" || true)
+  fi
+  [ -n "$pid" ] || pid="$prev_pid"
+  [ -n "$pid" ] || pid=null
+
+  started="$prev_started"
+  duration=null
+  case "$state" in
+    running)
+      # A repeated running report is a heartbeat, not a new turn.
+      [ "$prev_state" = running ] && [ -n "$prev_started" ] || started="$now"
+      ;;
+    idle)
+      started=''
+      ;;
+    done|error)
+      [ -n "$prev_started" ] && duration=$((now - prev_started))
+      ;;
+  esac
+  [ -n "$started" ] || started=null
+
+  tmp="$file.$$"
+  printf '{"v":%s,"source":"%s","session_id":"%s","label":"%s","cwd":"%s","activity":"%s","state":"%s","ts":%s,"started":%s,"duration":%s,"pid":%s}\n' \
+    "$SCHEMA" \
+    "$(json_escape "$source")" "$(json_escape "$session")" "$(json_escape "$label")" \
+    "$(json_escape "$cwd")" "$(json_escape "$activity")" "$state" \
+    "$now" "$started" "$duration" "$pid" > "$tmp" 2>/dev/null \
+    && mv -f "$tmp" "$file" 2>/dev/null
+  exit 0
+}
+
+# --- clear -----------------------------------------------------------------
+
+cmd_clear() {
+  source='' session=''
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --source)  source="${2:-}"; shift 2 ;;
+      --session) session="${2:-}"; shift 2 ;;
+      *) die "unknown option: $1" ;;
+    esac
+  done
+  [ -n "$source" ] && [ -n "$session" ] || die "--source and --session are required"
+  rm -f "$(session_file "$source" "$session")" 2>/dev/null
+  exit 0
+}
+
+# --- wrap ------------------------------------------------------------------
+# The universal fallback: anything that runs as a process can be shown.
+
+cmd_wrap() {
+  source='' label=''
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --source) source="${2:-}"; shift 2 ;;
+      --label)  label="${2:-}"; shift 2 ;;
+      --)       shift; break ;;
+      *) die "unknown option: $1" ;;
+    esac
+  done
+  [ -n "$source" ] || source=shell
+  [ $# -gt 0 ] || die "wrap needs a command after --"
+  [ -n "$label" ] || label="$1"
+
+  session="wrap-$$"
+  trap 'cmd_clear_quiet "$source" "$session"; exit 130' INT TERM
+
+  "$0" report --source "$source" --session "$session" --state running \
+       --label "$label" --pid "$$"
+  "$@"
+  code=$?
+  if [ "$code" -eq 0 ]; then
+    "$0" report --source "$source" --session "$session" --state done
+  else
+    "$0" report --source "$source" --session "$session" --state error
+  fi
+  exit "$code"
+}
+
+cmd_clear_quiet() { rm -f "$(session_file "$1" "$2")" 2>/dev/null; }
+
+# --- source branding -------------------------------------------------------
+# Lets an adapter register a display name/icon without touching the app.
+
+cmd_source() {
+  id='' name='' symbol='' accent=''
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --id)     id="${2:-}"; shift 2 ;;
+      --name)   name="${2:-}"; shift 2 ;;
+      --symbol) symbol="${2:-}"; shift 2 ;;
+      --accent) accent="${2:-}"; shift 2 ;;
+      *) die "unknown option: $1" ;;
+    esac
+  done
+  [ -n "$id" ] || die "--id is required"
+  command -v jq >/dev/null 2>&1 || exit 0
+
+  mkdir -p "$ON_DIR" 2>/dev/null || exit 0
+  [ -f "$SOURCES" ] || printf '{"sources":{}}\n' > "$SOURCES"
+
+  tmp="$SOURCES.$$"
+  jq --arg id "$id" --arg name "$name" --arg symbol "$symbol" --arg accent "$accent" '
+    .sources[$id] = ((.sources[$id] // {})
+      + (if $name   == "" then {} else {name: $name}     end)
+      + (if $symbol == "" then {} else {symbol: $symbol} end)
+      + (if $accent == "" then {} else {accent: $accent} end))
+  ' "$SOURCES" > "$tmp" 2>/dev/null \
+    && jq empty "$tmp" 2>/dev/null \
+    && mv -f "$tmp" "$SOURCES"
+  rm -f "$tmp" 2>/dev/null
+  exit 0
+}
+
+# --- misc ------------------------------------------------------------------
+
+cmd_list() {
+  [ -d "$SESSIONS" ] || exit 0
+  for f in "$SESSIONS"/*.json; do
+    [ -f "$f" ] || continue
+    cat "$f"
+  done
+}
+
+cmd_prune() {
+  [ -d "$SESSIONS" ] || exit 0
+  for f in "$SESSIONS"/*.json; do
+    [ -f "$f" ] || continue
+    pid=$(read_num "$f" pid)
+    [ -n "$pid" ] || continue
+    kill -0 "$pid" 2>/dev/null || rm -f "$f"
+  done
+}
+
+case "${1:-help}" in
+  report) shift; cmd_report "$@" ;;
+  clear)  shift; cmd_clear "$@" ;;
+  wrap)   shift; cmd_wrap "$@" ;;
+  source) shift; cmd_source "$@" ;;
+  list)   shift; cmd_list ;;
+  prune)  shift; cmd_prune ;;
+  dir)    printf '%s\n' "$ON_DIR" ;;
+  help|-h|--help) usage ;;
+  *) die "unknown command: ${1:-}; try 'opennotch help'" ;;
+esac

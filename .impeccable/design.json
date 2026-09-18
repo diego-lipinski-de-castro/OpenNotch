@@ -1,0 +1,388 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-18T14:49:12Z",
+  "title": "Design System: OpenNotch",
+  "extensions": {
+    "colorMeta": {
+      "body": {
+        "role": "neutral",
+        "displayName": "The Body",
+        "canonical": "#000000",
+        "tonalRamp": [
+          "#000000",
+          "#000000",
+          "#000000",
+          "#000000",
+          "#000000",
+          "#000000",
+          "#000000",
+          "#000000"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "oklch(0.97 0.006 250)",
+        "tonalRamp": [
+          "#0C0D0F",
+          "#25272A",
+          "#414448",
+          "#606367",
+          "#808487",
+          "#A2A6AA",
+          "#C6CACD",
+          "#F2F5F9"
+        ]
+      },
+      "ink-primary": {
+        "role": "neutral",
+        "displayName": "Ink Primary",
+        "canonical": "ink at 95% over the body",
+        "tonalRamp": [
+          "#090B0E",
+          "#232528",
+          "#3F4246",
+          "#5E6266",
+          "#7F8387",
+          "#A1A5AA",
+          "#C6CACE",
+          "#EBEFF3"
+        ]
+      },
+      "ink-secondary": {
+        "role": "neutral",
+        "displayName": "Ink Secondary",
+        "canonical": "ink at 74% over the body",
+        "tonalRamp": [
+          "#090B0E",
+          "#232528",
+          "#3F4246",
+          "#5E6266",
+          "#7F8387",
+          "#A1A5AA",
+          "#C6CACE",
+          "#EBEFF3"
+        ]
+      },
+      "ink-tertiary": {
+        "role": "neutral",
+        "displayName": "Ink Tertiary",
+        "canonical": "ink at 50% over the body",
+        "tonalRamp": [
+          "#090B0E",
+          "#232528",
+          "#3F4246",
+          "#5E6266",
+          "#7F8387",
+          "#A1A5AA",
+          "#C6CACE",
+          "#EBEFF3"
+        ]
+      },
+      "ink-rule": {
+        "role": "neutral",
+        "displayName": "Ink Rule",
+        "canonical": "ink at 8% over the body",
+        "tonalRamp": [
+          "#090B0E",
+          "#232528",
+          "#3F4246",
+          "#5E6266",
+          "#7F8387",
+          "#A1A5AA",
+          "#C6CACE",
+          "#EBEFF3"
+        ]
+      },
+      "state-waiting": {
+        "role": "primary",
+        "displayName": "Signal Amber",
+        "canonical": "oklch(0.82 0.16 80)",
+        "tonalRamp": [
+          "#250000",
+          "#461300",
+          "#693200",
+          "#8D5200",
+          "#B37400",
+          "#D79800",
+          "#FBBD49",
+          "#FFE479"
+        ]
+      },
+      "state-done": {
+        "role": "secondary",
+        "displayName": "Clear Green",
+        "canonical": "oklch(0.7 0.13 152)",
+        "tonalRamp": [
+          "#001500",
+          "#003301",
+          "#00531E",
+          "#0D753B",
+          "#38985A",
+          "#63BB7E",
+          "#8BE0A3",
+          "#B3FFC9"
+        ]
+      },
+      "state-error": {
+        "role": "secondary",
+        "displayName": "Fault Red",
+        "canonical": "oklch(0.62 0.2 27)",
+        "tonalRamp": [
+          "#380000",
+          "#610000",
+          "#8B0000",
+          "#B51218",
+          "#E13F3A",
+          "#FF6B60",
+          "#FF9486",
+          "#FFBDAD"
+        ]
+      },
+      "state-running": {
+        "role": "neutral",
+        "displayName": "Standby Grey",
+        "canonical": "oklch(0.74 0.028 250)",
+        "tonalRamp": [
+          "#040C15",
+          "#1C2631",
+          "#38434F",
+          "#566370",
+          "#768493",
+          "#99A7B6",
+          "#BDCBDA",
+          "#E3F0FF"
+        ]
+      },
+      "state-idle": {
+        "role": "neutral",
+        "displayName": "Idle Grey",
+        "canonical": "oklch(0.55 0.008 250)",
+        "tonalRamp": [
+          "#090B0E",
+          "#232528",
+          "#3F4246",
+          "#5E6266",
+          "#7F8387",
+          "#A1A5AA",
+          "#C6CACE",
+          "#EBEFF3"
+        ]
+      },
+      "accent-claude-code": {
+        "role": "tertiary",
+        "displayName": "Claude Terracotta",
+        "canonical": "#D97757",
+        "tonalRamp": [
+          "#1C0A05",
+          "#3B160A",
+          "#5E2411",
+          "#853619",
+          "#AE4B26",
+          "#D97757",
+          "#EFA98E",
+          "#FBD6C6"
+        ]
+      },
+      "accent-codex": {
+        "role": "tertiary",
+        "displayName": "Codex Green",
+        "canonical": "#10A37F",
+        "tonalRamp": [
+          "#00160F",
+          "#002C20",
+          "#004433",
+          "#005E47",
+          "#00795C",
+          "#109E7B",
+          "#4FC9A6",
+          "#9CE8D0"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "title": {
+        "displayName": "Title",
+        "purpose": "The session name. The largest type in the product."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "The empty state, and the only running prose."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Panel headline and each row's timing column. Tabular figures are mandatory: this text ticks once a second."
+      },
+      "caption": {
+        "displayName": "Caption",
+        "purpose": "The directory line under a session name, and the footer controls."
+      },
+      "micro": {
+        "displayName": "Micro",
+        "purpose": "Client name in a row, elapsed time beside the cutout. SF Pro Rounded, matching the system's own small numerals."
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "spring-hover",
+        "value": "spring(response: 0.34, dampingFraction: 0.82)",
+        "purpose": "Panel opening and closing on hover. No visible overshoot at this damping."
+      },
+      {
+        "name": "spring-active",
+        "value": "spring(response: 0.40, dampingFraction: 0.85)",
+        "purpose": "The silhouette growing wings when a session becomes active."
+      },
+      {
+        "name": "spin-generic",
+        "value": "linear 0.85s, repeat forever",
+        "purpose": "The 72% arc used when a client has no mark of its own."
+      },
+      {
+        "name": "spin-mark",
+        "value": "linear 2.6s, repeat forever",
+        "purpose": "A client's own vector mark turning. Slower, because a brand mark spinning at arc speed reads as a loading state rather than an identity."
+      },
+      {
+        "name": "pulse-waiting",
+        "value": "easeInOut 0.7s, autoreverse, repeat forever",
+        "purpose": "The waiting dot, 62% to 100% scale. Suppressed under Reduce Motion; the dot is kept."
+      },
+      {
+        "name": "done-linger",
+        "value": "9s",
+        "purpose": "How long a finished session keeps showing its result before retiring."
+      },
+      {
+        "name": "stale-after",
+        "value": "30min",
+        "purpose": "An interrupted turn may never report a closing state, so it stops being shown."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "cutout",
+        "value": "safeAreaInsets.top > 0",
+        "purpose": "A display with a physical notch. Geometry is measured from the real cutout, and the idle panel is invisible because it matches it exactly."
+      },
+      {
+        "name": "no-cutout",
+        "value": "150x10 hover strip",
+        "purpose": "An external display. There is nothing to blend into, so the idle shape is not drawn at all and the active state renders as a floating pill at top centre."
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Notch Silhouette",
+      "kind": "custom",
+      "refersTo": "notch-collapsed",
+      "description": "The signature component, shown here in the waiting state. Square at the top, rounded at the bottom, flared outward at the top corners so it reads as the cutout growing rather than a panel appearing beneath it.",
+      "html": "<div class=\"ds-notch\"><svg viewBox=\"0 0 259 38\" aria-hidden=\"true\"><path fill=\"#000\" d=\"M0,0 Q7,0 7,7 L7,27 Q7,38 18,38 L241,38 Q252,38 252,27 L252,7 Q252,0 259,0 Z\"/></svg><div class=\"ds-notch-wing ds-notch-wing-left\"><span class=\"ds-glyph ds-glyph-waiting\"></span></div><div class=\"ds-notch-wing ds-notch-wing-right\"><span class=\"ds-notch-timer\">1:38</span></div></div>",
+      "css": ".ds-notch { position: relative; width: 259px; height: 38px; font-family: -apple-system, system-ui, sans-serif; }\n.ds-notch svg { display: block; width: 259px; height: 38px; }\n.ds-notch-wing { position: absolute; top: 0; height: 38px; width: 37px; display: flex; align-items: center; justify-content: center; }\n.ds-notch-wing-left { left: 0; }\n.ds-notch-wing-right { right: 0; }\n.ds-notch-timer { font-family: \"SF Pro Rounded\", -apple-system, system-ui, sans-serif; font-size: 9pt; font-weight: 500; font-variant-numeric: tabular-nums; color: #FAB72A; }\n\n.ds-glyph { display: inline-block; position: relative; }\n.ds-glyph-running { width: 15px; height: 15px; border: 2px solid #9EADBC; border-radius: 50%; border-right-color: transparent; animation: ds-spin 0.85s linear infinite; }\n.ds-glyph-waiting { width: 11px; height: 11px; border-radius: 50%; background: #FAB72A; animation: ds-pulse 0.7s ease-in-out infinite alternate; }\n.ds-glyph-done, .ds-glyph-error { width: 15px; height: 15px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; line-height: 1; }\n.ds-glyph-done { color: #58B575; }\n.ds-glyph-error { color: #E6443D; }\n@keyframes ds-spin { to { transform: rotate(360deg); } }\n@keyframes ds-pulse { from { transform: scale(0.62); opacity: 0.45; } to { transform: scale(1); opacity: 1; } }\n@media (prefers-reduced-motion: reduce) {\n  .ds-glyph-running { animation: none; }\n  .ds-glyph-waiting { animation: none; transform: scale(1); opacity: 1; }\n}"
+    },
+    {
+      "name": "Status Glyph",
+      "kind": "custom",
+      "refersTo": "row-detail-running",
+      "description": "All four states side by side. Each has a distinct silhouette so the set survives desaturation; the arc and pulse stop under Reduce Motion while the dot is retained.",
+      "html": "<div style=\"display:flex;gap:22px;align-items:center;background:#000;padding:16px 20px;\"><span class=\"ds-glyph ds-glyph-running\"></span><span class=\"ds-glyph ds-glyph-waiting\"></span><span class=\"ds-glyph ds-glyph-done\">&#10003;</span><span class=\"ds-glyph ds-glyph-error\">!</span></div>",
+      "css": ".ds-glyph { display: inline-block; position: relative; }\n.ds-glyph-running { width: 15px; height: 15px; border: 2px solid #9EADBC; border-radius: 50%; border-right-color: transparent; animation: ds-spin 0.85s linear infinite; }\n.ds-glyph-waiting { width: 11px; height: 11px; border-radius: 50%; background: #FAB72A; animation: ds-pulse 0.7s ease-in-out infinite alternate; }\n.ds-glyph-done, .ds-glyph-error { width: 15px; height: 15px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; line-height: 1; }\n.ds-glyph-done { color: #58B575; }\n.ds-glyph-error { color: #E6443D; }\n@keyframes ds-spin { to { transform: rotate(360deg); } }\n@keyframes ds-pulse { from { transform: scale(0.62); opacity: 0.45; } to { transform: scale(1); opacity: 1; } }\n@media (prefers-reduced-motion: reduce) {\n  .ds-glyph-running { animation: none; }\n  .ds-glyph-waiting { animation: none; transform: scale(1); opacity: 1; }\n}"
+    },
+    {
+      "name": "Session Row",
+      "kind": "list-item",
+      "refersTo": "session-row",
+      "description": "Two lines: what it is, and where it is. Two sessions in folders both called api are indistinguishable without the second line. Separated by a 1px hairline, never a card.",
+      "html": "<div style=\"background:#000;width:424px;\"><div class=\"ds-row\"><div class=\"ds-row-glyph\"><span class=\"ds-glyph ds-glyph-waiting\"></span></div><div class=\"ds-row-names\"><div class=\"ds-row-title\">api</div><div class=\"ds-row-location\">~/Development/acme/services</div></div><div class=\"ds-row-meta\"><div class=\"ds-row-detail ds-row-detail-waiting\">waiting for you</div><div class=\"ds-row-client\">Claude Code</div></div></div><div class=\"ds-row\"><div class=\"ds-row-glyph\"><span class=\"ds-glyph ds-glyph-running\"></span></div><div class=\"ds-row-names\"><div class=\"ds-row-title\">web</div><div class=\"ds-row-location\">~/Development/acme/apps</div></div><div class=\"ds-row-meta\"><div class=\"ds-row-detail ds-row-detail-running\">2:14</div><div class=\"ds-row-client\">Codex</div></div></div></div>",
+      "css": ".ds-row { display: flex; align-items: center; gap: 9px; height: 42px; padding: 0 16px; background: #000; font-family: -apple-system, system-ui, sans-serif; }\n.ds-row + .ds-row { box-shadow: inset 0 1px 0 #131414; }\n.ds-row-glyph { width: 13px; display: flex; justify-content: center; flex: none; }\n.ds-row-names { display: flex; flex-direction: column; gap: 1px; min-width: 0; }\n.ds-row-title { font-size: 12.5pt; font-weight: 500; color: #E6E9ED; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }\n.ds-row-location { font-size: 10pt; font-weight: 400; color: #797B7D; direction: rtl; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }\n.ds-row-meta { margin-left: auto; display: flex; flex-direction: column; align-items: flex-end; gap: 1px; flex: none; padding-left: 10px; }\n.ds-row-detail { font-size: 11pt; font-weight: 500; font-variant-numeric: tabular-nums; white-space: nowrap; }\n.ds-row-detail-waiting { color: #FAB72A; }\n.ds-row-detail-running { color: #9EADBC; }\n.ds-row-client { font-size: 9.5pt; font-weight: 400; color: #797B7D; white-space: nowrap; }\n\n.ds-glyph { display: inline-block; position: relative; }\n.ds-glyph-running { width: 15px; height: 15px; border: 2px solid #9EADBC; border-radius: 50%; border-right-color: transparent; animation: ds-spin 0.85s linear infinite; }\n.ds-glyph-waiting { width: 11px; height: 11px; border-radius: 50%; background: #FAB72A; animation: ds-pulse 0.7s ease-in-out infinite alternate; }\n.ds-glyph-done, .ds-glyph-error { width: 15px; height: 15px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; line-height: 1; }\n.ds-glyph-done { color: #58B575; }\n.ds-glyph-error { color: #E6443D; }\n@keyframes ds-spin { to { transform: rotate(360deg); } }\n@keyframes ds-pulse { from { transform: scale(0.62); opacity: 0.45; } to { transform: scale(1); opacity: 1; } }\n@media (prefers-reduced-motion: reduce) {\n  .ds-glyph-running { animation: none; }\n  .ds-glyph-waiting { animation: none; transform: scale(1); opacity: 1; }\n}"
+    },
+    {
+      "name": "Panel",
+      "kind": "card",
+      "refersTo": "panel",
+      "description": "The hover panel: header, rows sorted by urgency, footer. Rounded at the bottom only, because the top edge is flush with the screen. The real shape also flares 10px outward at the top corners; see the Notch Silhouette.",
+      "html": "<div class=\"ds-panel\"><div class=\"ds-panel-header\"><span class=\"ds-glyph ds-glyph-waiting\"></span><span class=\"ds-panel-headline\">Needs you</span><span class=\"ds-panel-client\">2 clients</span></div><div class=\"ds-row\"><div class=\"ds-row-glyph\"><span class=\"ds-glyph ds-glyph-waiting\"></span></div><div class=\"ds-row-names\"><div class=\"ds-row-title\">api</div><div class=\"ds-row-location\">~/Development/acme/services</div></div><div class=\"ds-row-meta\"><div class=\"ds-row-detail ds-row-detail-waiting\">waiting for you</div><div class=\"ds-row-client\">Claude Code</div></div></div><div class=\"ds-row\"><div class=\"ds-row-glyph\"><span class=\"ds-glyph ds-glyph-running\"></span></div><div class=\"ds-row-names\"><div class=\"ds-row-title\">web</div><div class=\"ds-row-location\">~/Development/acme/apps</div></div><div class=\"ds-row-meta\"><div class=\"ds-row-detail ds-row-detail-running\">2:14</div><div class=\"ds-row-client\">Codex</div></div></div><div class=\"ds-footer\"><label class=\"ds-footer-toggle\"><input type=\"checkbox\" checked>Open at login</label><button class=\"ds-footer-quit\">Quit</button></div></div>",
+      "css": ".ds-panel { width: 424px; background: #000; border-radius: 0 0 22px 22px; padding: 0 0 12px; overflow: hidden; font-family: -apple-system, system-ui, sans-serif; }\n.ds-panel-header { display: flex; align-items: center; gap: 6px; height: 32px; padding: 0 16px; }\n.ds-panel-headline { font-size: 11pt; font-weight: 500; color: #B3B6B8; }\n.ds-panel-client { margin-left: auto; font-family: \"SF Pro Rounded\", -apple-system, system-ui, sans-serif; font-size: 11pt; font-weight: 600; color: #797B7D; }\n\n.ds-row { display: flex; align-items: center; gap: 9px; height: 42px; padding: 0 16px; background: #000; font-family: -apple-system, system-ui, sans-serif; }\n.ds-row + .ds-row { box-shadow: inset 0 1px 0 #131414; }\n.ds-row-glyph { width: 13px; display: flex; justify-content: center; flex: none; }\n.ds-row-names { display: flex; flex-direction: column; gap: 1px; min-width: 0; }\n.ds-row-title { font-size: 12.5pt; font-weight: 500; color: #E6E9ED; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }\n.ds-row-location { font-size: 10pt; font-weight: 400; color: #797B7D; direction: rtl; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }\n.ds-row-meta { margin-left: auto; display: flex; flex-direction: column; align-items: flex-end; gap: 1px; flex: none; padding-left: 10px; }\n.ds-row-detail { font-size: 11pt; font-weight: 500; font-variant-numeric: tabular-nums; white-space: nowrap; }\n.ds-row-detail-waiting { color: #FAB72A; }\n.ds-row-detail-running { color: #9EADBC; }\n.ds-row-client { font-size: 9.5pt; font-weight: 400; color: #797B7D; white-space: nowrap; }\n\n.ds-footer { display: flex; align-items: center; gap: 10px; height: 30px; padding: 0 16px; background: #000; box-shadow: inset 0 1px 0 #131414; font-family: -apple-system, system-ui, sans-serif; }\n.ds-footer-toggle { display: flex; align-items: center; gap: 5px; font-size: 10pt; font-weight: 400; color: #797B7D; }\n.ds-footer-toggle input { margin: 0; }\n.ds-footer-quit { margin-left: auto; background: none; border: none; padding: 0; font: inherit; font-size: 10pt; font-weight: 500; color: #797B7D; cursor: pointer; }\n.ds-footer-quit:hover { color: #E6E9ED; }\n.ds-footer-quit:focus-visible { outline: 1px solid #797B7D; outline-offset: 2px; }\n\n.ds-glyph { display: inline-block; position: relative; }\n.ds-glyph-running { width: 15px; height: 15px; border: 2px solid #9EADBC; border-radius: 50%; border-right-color: transparent; animation: ds-spin 0.85s linear infinite; }\n.ds-glyph-waiting { width: 11px; height: 11px; border-radius: 50%; background: #FAB72A; animation: ds-pulse 0.7s ease-in-out infinite alternate; }\n.ds-glyph-done, .ds-glyph-error { width: 15px; height: 15px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; line-height: 1; }\n.ds-glyph-done { color: #58B575; }\n.ds-glyph-error { color: #E6443D; }\n@keyframes ds-spin { to { transform: rotate(360deg); } }\n@keyframes ds-pulse { from { transform: scale(0.62); opacity: 0.45; } to { transform: scale(1); opacity: 1; } }\n@media (prefers-reduced-motion: reduce) {\n  .ds-glyph-running { animation: none; }\n  .ds-glyph-waiting { animation: none; transform: scale(1); opacity: 1; }\n}"
+    },
+    {
+      "name": "Footer Controls",
+      "kind": "nav",
+      "refersTo": "footer-control",
+      "description": "A system checkbox and a plain text button, unstyled. AppKit controls doing exactly what AppKit controls do, which is the correct amount of design for a launch-at-login toggle.",
+      "html": "<div style=\"width:424px;background:#000;\"><div class=\"ds-footer\"><label class=\"ds-footer-toggle\"><input type=\"checkbox\" checked>Open at login</label><button class=\"ds-footer-quit\">Quit</button></div></div>",
+      "css": ".ds-footer { display: flex; align-items: center; gap: 10px; height: 30px; padding: 0 16px; background: #000; box-shadow: inset 0 1px 0 #131414; font-family: -apple-system, system-ui, sans-serif; }\n.ds-footer-toggle { display: flex; align-items: center; gap: 5px; font-size: 10pt; font-weight: 400; color: #797B7D; }\n.ds-footer-toggle input { margin: 0; }\n.ds-footer-quit { margin-left: auto; background: none; border: none; padding: 0; font: inherit; font-size: 10pt; font-weight: 500; color: #797B7D; cursor: pointer; }\n.ds-footer-quit:hover { color: #E6E9ED; }\n.ds-footer-quit:focus-visible { outline: 1px solid #797B7D; outline-offset: 2px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Status Light",
+    "overview": "OpenNotch is an appliance, not an app. You learn what amber means once, and after that you never read the interface again: you catch it at the edge of vision and already know. Every decision follows from that. A status light that asks to be studied has failed, so the system is built to be legible at a glance and forgettable the rest of the time.\n\nThe surface is a borderless panel parked over the MacBook's physical cutout. At rest it is exactly cutout-sized and painted pure black, which makes it invisible: the design is literally nothing for the overwhelming majority of its life. When something happens it grows wings beside the cutout and a shallow lip underneath, so the hardware appears to widen. Hovering opens a 424pt panel listing every live session. That panel is a menu, not a dashboard, and it is sized to be closed again immediately.\n\nThis system rejects the visual vocabulary of the category it lives in. No gradient auras, no bloom, no shimmer, no purple-blue \"intelligence\" glow. No cards, badges, pills, or drop shadows. No bounce, no overshoot, no mascot. Those are all ways of announcing that software is present, and the entire value here depends on the opposite claim: that nothing was installed, and the notch simply gained a behaviour.",
+    "keyCharacteristics": [
+      "Invisible at rest; the idle state draws zero pixels the user can perceive.",
+      "Pure black on exactly one surface, tinted neutrals everywhere else.",
+      "Every state readable without color, by silhouette and by lightness order.",
+      "A type scale spanning 3.5pt, with hierarchy carried by opacity instead of size.",
+      "Zero shadows, zero blur, zero translucency, anywhere in the product.",
+      "The system's own type, easing, and accessibility settings, inherited wholesale."
+    ],
+    "rules": [
+      {
+        "name": "The Lightness Ladder Rule",
+        "section": "colors",
+        "body": "States are ordered by OKLCH lightness, never by hue: waiting 0.82, running 0.74, done 0.70, error 0.62. A user with deuteranopia or protanopia loses the hues and keeps the order. Any new state must be inserted into the ladder at a lightness that does not collide with its neighbours, and adding one that merely picks a free hue is prohibited."
+      },
+      {
+        "name": "The One Black Rule",
+        "section": "colors",
+        "body": "#000000 is permitted on exactly one surface: the panel body, because it has to be indistinguishable from a hole in the display. Every other neutral is tinted toward hue 250. Using untinted black or white anywhere else is forbidden."
+      },
+      {
+        "name": "The Ink Floor Rule",
+        "section": "colors",
+        "body": "No text may fall below 4.5:1 against the body. In practice that means no opacity under 0.50, measured, not estimated. The tertiary role sits at 0.50 and measures 4.93:1; 0.45 measures 4.13:1 and fails. When Increase Contrast is on, the whole ladder rises rather than a single role being patched."
+      },
+      {
+        "name": "The Opacity Hierarchy Rule",
+        "section": "typography",
+        "body": "With 3.5pt between the smallest and largest type, size cannot carry hierarchy and must not be asked to. Rank is expressed through the ink ladder: primary, secondary, tertiary. Reaching for a larger point size to make something more important is the wrong instrument; drop everything around it a rung instead."
+      },
+      {
+        "name": "The Ticking Digit Rule",
+        "section": "typography",
+        "body": "Any number that updates on a timer is set with tabular figures. A timer whose width changes as it counts is the single most obvious tell that a piece of UI was not made by the platform vendor."
+      },
+      {
+        "name": "The No-Shadow Rule",
+        "section": "elevation",
+        "body": "Shadows, glows, blurs, and materials are forbidden throughout, including on hover and focus. If a surface needs separating from another surface, use a 1px hairline at ink-rule or nothing at all."
+      },
+      {
+        "name": "The Seam Rule",
+        "section": "elevation",
+        "body": "Every geometry change is judged by one test: does the panel still read as the notch itself, or as a rectangle stuck underneath it? When a feature and the seam conflict, the seam wins."
+      }
+    ],
+    "dos": [
+      "Do author every color in OKLCH and let the converter in Palette.swift produce sRGB. Lightness is the load-bearing channel.",
+      "Do give every state a distinct silhouette as well as a hue, and verify the lightness ladder holds before adding one.",
+      "Do measure contrast rather than eyeballing it. The floor is 4.5:1 against the body, and 0.45 opacity already fails it.",
+      "Do use the four ink roles for text. Adding a fifth opacity to solve a local problem breaks the ladder for everyone.",
+      "Do use tabular figures on anything that ticks.",
+      "Do honor Reduce Motion and Increase Contrast. Inheriting the system's accessibility settings is part of the personality, not a compliance chore.",
+      "Do keep #000000 for the panel body, where it is the only correct value.",
+      "Do separate surfaces with a 1px hairline at ink-rule or with nothing."
+    ],
+    "donts": [
+      "Don't ship the glowing AI product: no purple-blue gradient auras, no \"intelligence\" shimmer, no bloom behind glyphs, no animated gradients on state change. This is the default look of agent tooling and the loudest way to break the illusion.",
+      "Don't import corporate SaaS chrome: no cards, badges, pills, drop shadows, or dashboard vocabulary. The hover panel is a menu, not a dashboard.",
+      "Don't make it toy or cute: no bouncy overshoot, no elastic springs, no emoji, no mascot energy, no rounded-everything. Motion here is physical, not playful.",
+      "Don't add a shadow, blur, vibrancy, or material anywhere, including on hover and focus.",
+      "Don't use a larger point size to signal importance. Use the ink ladder.",
+      "Don't let a client's accent color carry state. Identity and status are separate channels, and the moment a client's brand color means \"running\", the product is lying.",
+      "Don't introduce untinted black or white outside the panel body.",
+      "Don't add a display typeface, a custom font, or a weight above 600.",
+      "Don't add a tunable to avoid making a decision. The defaults are the product."
+    ]
+  }
+}
