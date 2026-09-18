@@ -33,6 +33,12 @@ map() {
 map SessionStart     "--state idle --owner claude"
 map UserPromptSubmit "--state running --owner claude"
 map Notification     "--state waiting --if-state running"
+# Nothing in Claude Code's vocabulary says "the human answered", so a granted
+# permission used to leave the session amber for the rest of the turn. A tool
+# cannot run until the prompt is resolved, so its completion is the resume
+# signal. Guarded, so it is a no-op on every tool call but the first one after
+# a prompt.
+map PostToolUse      "--state running --if-state waiting"
 map Stop             "--state done"
 map SessionEnd       "--clear"
 

@@ -66,6 +66,11 @@ final class SessionStore: ObservableObject {
     /// has neither updated nor touched its activity file for this long stops
     /// being shown.
     static let staleAfter: TimeInterval = 30 * 60
+    /// How long a blocked session's transcript has to have outlived the report
+    /// that blocked it before we conclude the human already answered.
+    /// Deliberately generous: wrongly clearing this state hides the one thing
+    /// the product exists to show.
+    static let resumedAfter: TimeInterval = 10
 
     @Published private(set) var sessions: [Session] = []
     @Published private(set) var overall: OverallState = .idle
@@ -109,11 +114,31 @@ final class SessionStore: ObservableObject {
             return .idle
         case .done, .error:
             return now.timeIntervalSince(session.updated) > Self.doneLinger ? .idle : session.state
-        case .running, .waiting:
+        case .running:
             guard isAlive(session.pid) else { return .idle }
-            let last = max(session.updated, activity[session.id] ?? .distantPast)
-            return now.timeIntervalSince(last) > Self.staleAfter ? .idle : session.state
+            return isStale(session) ? .idle : .running
+        case .waiting:
+            guard isAlive(session.pid) else { return .idle }
+            // Clients say when they start waiting on a human. None of them say
+            // when the human answered: Claude Code has no event for a granted
+            // permission, so an approved prompt left the session amber for the
+            // rest of the turn, which teaches the user to distrust the one
+            // colour that matters. The transcript is the tell. If it has been
+            // written well after the session said it was blocked, the turn is
+            // moving again and nobody is being waited on.
+            if let touched = activity[session.id],
+               touched.timeIntervalSince(session.updated) > Self.resumedAfter {
+                return .running
+            }
+            return isStale(session) ? .idle : .waiting
         }
+    }
+
+    /// Neither the client nor its transcript has said anything in a long time,
+    /// which is what an interrupted turn looks like from out here.
+    private func isStale(_ session: Session) -> Bool {
+        let last = max(session.updated, activity[session.id] ?? .distantPast)
+        return now.timeIntervalSince(last) > Self.staleAfter
     }
 
     /// Sessions that have something to say, most recently active first.

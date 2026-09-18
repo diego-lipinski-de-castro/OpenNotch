@@ -36,6 +36,10 @@ map() {
 map SessionStart      "--state idle --owner codex"
 map UserPromptSubmit  "--state running --owner codex"
 map PermissionRequest "--state waiting --if-state running"
+# PermissionRequest says the turn stopped; nothing says it started again. A
+# tool cannot run until the request is resolved, so its completion is the
+# resume signal. Guarded, so it no-ops on every other tool call.
+map PostToolUse       "--state running --if-state waiting"
 map Stop              "--state done"
 map Interrupt         "--state idle"
 map SessionEnd        "--clear"

@@ -146,8 +146,13 @@ cmd_report() {
   duration=null
   case "$state" in
     running)
-      # A repeated running report is a heartbeat, not a new turn.
-      [ "$prev_state" = running ] && [ -n "$prev_started" ] || started="$now"
+      # A repeated running report is a heartbeat, and coming back from waiting
+      # is the same turn continuing once the human answered. Neither restarts
+      # the clock; only a turn that begins from idle, done or error does.
+      case "$prev_state" in
+        running|waiting) [ -n "$prev_started" ] || started="$now" ;;
+        *)               started="$now" ;;
+      esac
       ;;
     idle)
       started=''
