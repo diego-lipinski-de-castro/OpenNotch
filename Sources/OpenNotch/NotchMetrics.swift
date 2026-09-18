@@ -55,14 +55,6 @@ struct NotchMetrics: Equatable {
             height: bodyHeight(expanded: expanded, active: active, rows: rows)
         )
     }
-
-    /// The largest window we ever need — used to size the hosting view once.
-    func maxWindowSize(rows: Int) -> CGSize {
-        let collapsed = windowSize(expanded: false, active: true, rows: rows)
-        let expanded = windowSize(expanded: true, active: true, rows: rows)
-        return CGSize(width: max(collapsed.width, expanded.width),
-                      height: max(collapsed.height, expanded.height))
-    }
 }
 
 enum Format {

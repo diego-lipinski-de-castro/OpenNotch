@@ -21,7 +21,6 @@ struct ExpandedPanel: View {
         .padding(.horizontal, m.expandedPadding + 4)
         .padding(.bottom, m.expandedPadding)
         .frame(width: m.expandedWidth + flare * 2)
-        .transition(.opacity)
     }
 
     // MARK: - Header

@@ -1,6 +1,27 @@
 import AppKit
 import SwiftUI
 
+/// Timing for the two things that move: the silhouette, and the content
+/// crossing over inside it.
+private enum Motion {
+    /// `smooth` is the system's spring with the bounce taken out. A damped
+    /// spring overshoots, and on a 92pt-per-side width change that overshoot
+    /// reads as a wobble at the end of the expansion. Bounce is ruled out by
+    /// PRODUCT.md anyway.
+    static let expand = Animation.smooth(duration: 0.32)
+    static let activate = Animation.smooth(duration: 0.38)
+
+    /// The old content went to full opacity the instant hover flipped, while
+    /// the shape was still a third of its final width, so you saw the middle
+    /// band of a 424pt panel clipped to a notch and revealing outward. Leaving
+    /// content waits for the silhouette to have room; the outgoing content
+    /// leaves fast so the two never smear over each other.
+    static let contentFade = AnyTransition.asymmetric(
+        insertion: .opacity.animation(.easeOut(duration: 0.16).delay(0.10)),
+        removal: .opacity.animation(.easeOut(duration: 0.07))
+    )
+}
+
 @MainActor
 final class NotchUIModel: ObservableObject {
     @Published var hovered = false
@@ -41,16 +62,18 @@ struct NotchRootView: View {
             .clipShape(shape)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             .environment(\.ink, contrast == .increased ? .increased : .standard)
-            .animation(.spring(response: 0.34, dampingFraction: 0.82), value: expanded)
-            .animation(.spring(response: 0.40, dampingFraction: 0.85), value: active)
+            .animation(Motion.expand, value: expanded)
+            .animation(Motion.activate, value: active)
     }
 
     @ViewBuilder
     private var content: some View {
         if expanded {
             ExpandedPanel(store: store, registry: registry, ui: ui, m: m, flare: flare)
+                .transition(Motion.contentFade)
         } else if active {
             collapsedContent
+                .transition(Motion.contentFade)
         }
     }
 
@@ -67,7 +90,6 @@ struct NotchRootView: View {
                 .frame(width: m.wing + flare, alignment: .center)
         }
         .frame(height: m.notchHeight + m.depth)
-        .transition(.opacity)
     }
 
     /// The session the collapsed glyph speaks for: the most recent one whose

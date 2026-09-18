@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-18T14:49:12Z",
+  "generatedAt": "2026-09-18T15:12:11Z",
   "title": "Design System: OpenNotch",
   "extensions": {
     "colorMeta": {
@@ -225,14 +225,24 @@
     "shadows": [],
     "motion": [
       {
-        "name": "spring-hover",
-        "value": "spring(response: 0.34, dampingFraction: 0.82)",
-        "purpose": "Panel opening and closing on hover. No visible overshoot at this damping."
+        "name": "smooth-expand",
+        "value": "smooth(duration: 0.32)",
+        "purpose": "Panel opening and closing on hover. `smooth` is the system spring with the bounce removed; a damped spring's overshoot reads as a wobble across a 92pt-per-side width change."
       },
       {
-        "name": "spring-active",
-        "value": "spring(response: 0.40, dampingFraction: 0.85)",
+        "name": "smooth-activate",
+        "value": "smooth(duration: 0.38)",
         "purpose": "The silhouette growing wings when a session becomes active."
+      },
+      {
+        "name": "content-fade",
+        "value": "easeOut 0.16s after a 0.10s delay in; easeOut 0.07s out",
+        "purpose": "Content crossing over inside the silhouette. The delay keeps content from appearing while the shape is still too narrow to hold it, and the asymmetry stops the outgoing and incoming content smearing over each other."
+      },
+      {
+        "name": "hover-poll",
+        "value": "0.05s",
+        "purpose": "Worst-case delay before the panel reacts to the cursor, and therefore the floor on how responsive hovering can feel."
       },
       {
         "name": "spin-generic",

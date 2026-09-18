@@ -73,7 +73,11 @@ final class NotchController {
 
         // Hover is polled rather than tracked: a non-activating panel that
         // resizes under the cursor drops tracking-area crossings too easily.
-        hoverTimer = Timer.scheduledTimer(withTimeInterval: 0.2, repeats: true) { [weak self] _ in
+        // The interval is the worst-case delay before the panel reacts, so it
+        // is the floor on how responsive hovering can feel. A mouse-location
+        // read costs microseconds; 200ms of nothing followed by everything
+        // moving at once does not read as an animation at all.
+        hoverTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { [weak self] _ in
             Task { @MainActor in self?.pollHover() }
         }
     }
@@ -98,10 +102,11 @@ final class NotchController {
         // when the cursor grazes its edge.
         let hot = ui.hovered ? panel.frame.insetBy(dx: -6, dy: -6) : panel.frame
         let inside = hot.contains(mouse)
-        if Debug.enabled {
-            NSLog("poll mouse=\(mouse) frame=\(panel.frame) hot=\(hot) inside=\(inside) hovered=\(ui.hovered)")
-        }
         guard inside != ui.hovered else { return }
+        // Logged on change only: at 20Hz, every poll is unreadable.
+        if Debug.enabled {
+            NSLog("hover \(inside) mouse=\(mouse) frame=\(panel.frame) hot=\(hot)")
+        }
         ui.hovered = inside
         updateLayout()
     }

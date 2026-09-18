@@ -270,9 +270,14 @@ The defining element, and the only custom drawing in the product.
 - **States:** idle draws the cutout exactly and is therefore invisible. Active adds
   `{spacing.wing}` on each side and a `{spacing.lip}` lip below. Expanded grows to
   `424px` wide with the radii stepping up together.
-- **Motion:** `spring(response: 0.34, damping: 0.82)` on hover, `spring(response:
-  0.40, damping: 0.85)` on becoming active. No overshoot is visible at these damping
-  values, which is the point.
+- **Motion:** `smooth(duration: 0.32)` on hover, `smooth(duration: 0.38)` on
+  becoming active. `smooth` is the system's spring with the bounce removed; a damped
+  spring overshoots, and on a 92pt-per-side width change that overshoot reads as a
+  wobble at the end of the expansion.
+- **Content handoff:** content inside the silhouette fades out in 0.07s and fades in
+  after a 0.10s delay, never both at once. Content that appears at full opacity while
+  the shape is still a third of its width shows the middle band of a 424pt panel
+  clipped to a notch, which reads as a glitch rather than a reveal.
 
 ### Status Glyph
 
