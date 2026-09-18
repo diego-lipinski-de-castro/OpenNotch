@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-18T15:12:11Z",
+  "generatedAt": "2026-09-18T16:31:05Z",
   "title": "Design System: OpenNotch",
   "extensions": {
     "colorMeta": {
@@ -226,17 +226,17 @@
     "motion": [
       {
         "name": "smooth-expand",
-        "value": "smooth(duration: 0.32)",
+        "value": "smooth(duration: 0.24)",
         "purpose": "Panel opening and closing on hover. `smooth` is the system spring with the bounce removed; a damped spring's overshoot reads as a wobble across a 92pt-per-side width change."
       },
       {
         "name": "smooth-activate",
-        "value": "smooth(duration: 0.38)",
+        "value": "smooth(duration: 0.30)",
         "purpose": "The silhouette growing wings when a session becomes active."
       },
       {
         "name": "content-fade",
-        "value": "easeOut 0.16s after a 0.10s delay in; easeOut 0.07s out",
+        "value": "easeOut 0.12s after a 0.05s delay in; easeOut 0.06s out",
         "purpose": "Content crossing over inside the silhouette. The delay keeps content from appearing while the shape is still too narrow to hold it, and the asymmetry stops the outgoing and incoming content smearing over each other."
       },
       {
@@ -268,6 +268,11 @@
         "name": "stale-after",
         "value": "30min",
         "purpose": "An interrupted turn may never report a closing state, so it stops being shown."
+      },
+      {
+        "name": "edge-breathe",
+        "value": "easeInOut 1.2s, autoreverse, repeat forever",
+        "purpose": "The lit edge under the cutout, easing between 50% and 100%. Waiting only; running holds still because the client's mark is already turning above it."
       }
     ],
     "breakpoints": [
@@ -371,6 +376,11 @@
         "name": "The Seam Rule",
         "section": "elevation",
         "body": "Every geometry change is judged by one test: does the panel still read as the notch itself, or as a rectangle stuck underneath it? When a feature and the seam conflict, the seam wins."
+      },
+      {
+        "name": "The Attention Budget Rule",
+        "section": "components",
+        "body": "The collapsed indicator's area and brightness scale with how much the state needs a human. Running spends 26pt of wing and a 5pt edge at 38%; waiting spends 34pt and 11pt at full. A state that costs the same as every other state only says that something is happening, which the user already knew when they started the turn."
       }
     ],
     "dos": [
@@ -392,7 +402,8 @@
       "Don't let a client's accent color carry state. Identity and status are separate channels, and the moment a client's brand color means \"running\", the product is lying.",
       "Don't introduce untinted black or white outside the panel body.",
       "Don't add a display typeface, a custom font, or a weight above 600.",
-      "Don't add a tunable to avoid making a decision. The defaults are the product."
+      "Don't add a tunable to avoid making a decision. The defaults are the product.",
+      "Don't use a system checkbox in the panel. It brings its own metrics and tinting, so it lines up with nothing and puts the only visible chrome in the product in the corner of an otherwise black panel."
     ]
   }
 }

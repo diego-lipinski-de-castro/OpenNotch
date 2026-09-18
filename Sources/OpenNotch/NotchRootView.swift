@@ -8,8 +8,8 @@ private enum Motion {
     /// spring overshoots, and on a 92pt-per-side width change that overshoot
     /// reads as a wobble at the end of the expansion. Bounce is ruled out by
     /// PRODUCT.md anyway.
-    static let expand = Animation.smooth(duration: 0.32)
-    static let activate = Animation.smooth(duration: 0.38)
+    static let expand = Animation.smooth(duration: 0.24)
+    static let activate = Animation.smooth(duration: 0.30)
 
     /// The old content went to full opacity the instant hover flipped, while
     /// the shape was still a third of its final width, so you saw the middle
@@ -17,8 +17,8 @@ private enum Motion {
     /// content waits for the silhouette to have room; the outgoing content
     /// leaves fast so the two never smear over each other.
     static let contentFade = AnyTransition.asymmetric(
-        insertion: .opacity.animation(.easeOut(duration: 0.16).delay(0.10)),
-        removal: .opacity.animation(.easeOut(duration: 0.07))
+        insertion: .opacity.animation(.easeOut(duration: 0.12).delay(0.05)),
+        removal: .opacity.animation(.easeOut(duration: 0.06))
     )
 }
 
@@ -42,18 +42,24 @@ struct NotchRootView: View {
     private var rows: Int { max(store.activeSessions.count, 1) }
 
     private var m: NotchMetrics { ui.metrics }
-    private var bodyWidth: CGFloat { m.bodyWidth(expanded: expanded, active: active) }
-    private var bodyHeight: CGFloat { m.bodyHeight(expanded: expanded, active: active, rows: rows) }
+    private var bodyWidth: CGFloat { m.bodyWidth(expanded: expanded, state: state) }
+    private var bodyHeight: CGFloat { m.bodyHeight(expanded: expanded, rows: rows, state: state) }
     private var flare: CGFloat { m.topRadius(expanded: expanded, active: active) }
-    /// On a display without a cutout there is nothing to blend into, so the
-    /// idle shape stays invisible and only serves as a hover target.
-    private var shapeOpacity: Double { (active || expanded || m.hasNotch) ? 1 : 0 }
+
+    /// Idle paints nothing at all.
+    ///
+    /// The panel is sized to the cutout's *bounding box*, but the cutout's own
+    /// bottom corners are rounded, so the box includes two slivers of real
+    /// screen. Filling them black drew two square nubs poking out from under
+    /// the notch. Leaving them unpainted shows the menu bar, which is what is
+    /// supposed to be there. Hover is polled against the window frame rather
+    /// than hit-tested, so an unpainted shape is still a working target.
 
     var body: some View {
         let shape = NotchShape(topRadius: flare,
-                               bottomRadius: m.bottomRadius(expanded: expanded, active: active))
+                               bottomRadius: m.bottomRadius(expanded: expanded, state: state))
         ZStack(alignment: .top) {
-            shape.fill(Palette.body.opacity(shapeOpacity))
+            shape.fill(Palette.body.opacity(active || expanded ? 1 : 0))
             content
         }
             .frame(width: bodyWidth + flare * 2, height: bodyHeight)
@@ -80,16 +86,23 @@ struct NotchRootView: View {
     // MARK: - Collapsed
 
     private var collapsedContent: some View {
-        HStack(spacing: 0) {
-            StatusGlyph(state: state, size: 15, style: primaryStyle)
-                .frame(width: m.wing + flare, alignment: .center)
+        let wing = m.wing(state) + flare
+        return VStack(spacing: 0) {
+            HStack(spacing: 0) {
+                StatusGlyph(state: state, size: 13, style: primaryStyle)
+                    .frame(width: wing, alignment: .center)
 
-            Color.clear.frame(width: m.notchWidth)   // the physical cutout
+                Color.clear.frame(width: m.notchWidth)   // the physical cutout
 
-            trailingBadge
-                .frame(width: m.wing + flare, alignment: .center)
+                trailingBadge
+                    .frame(width: wing, alignment: .center)
+            }
+            .frame(height: m.notchHeight)
+
+            StateEdge(state: state)
+                .frame(height: m.depth(state))
         }
-        .frame(height: m.notchHeight + m.depth)
+        .frame(width: m.notchWidth + wing * 2)
     }
 
     /// The session the collapsed glyph speaks for: the most recent one whose
@@ -118,6 +131,47 @@ struct NotchRootView: View {
                 .font(.system(size: 9, weight: .medium, design: .rounded))
                 .monospacedDigit()
                 .foregroundStyle(tint.opacity(0.85))
+        }
+    }
+}
+
+/// The lit edge under the cutout, and the reason the collapsed state reads at
+/// the edge of vision rather than needing to be looked at. Its depth comes from
+/// `NotchMetrics.depth`; its brightness and whether it moves come from here.
+///
+/// Clipped by the silhouette, so the corner radius rounds its ends and it reads
+/// as the notch glowing along its bottom rather than as a bar stuck underneath.
+private struct StateEdge: View {
+    let state: SessionState
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var lit = false
+
+    var body: some View {
+        Rectangle()
+            .fill(Palette.color(for: state).opacity(peak * (lit ? 1 : trough)))
+            .onAppear(perform: start)
+            .id(state)
+    }
+
+    private var peak: Double {
+        switch state {
+        case .idle:         return 0
+        case .running:      return 0.38
+        case .waiting:      return 1
+        case .done, .error: return 0.9
+        }
+    }
+
+    /// Only waiting breathes. Running holding still is the point: a turn in
+    /// flight is the normal case and does not deserve movement down here, where
+    /// the client's own mark is already turning.
+    private var trough: Double { state == .waiting ? 0.5 : 1 }
+
+    private func start() {
+        guard state == .waiting, !reduceMotion else { lit = true; return }
+        withAnimation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true)) {
+            lit = true
         }
     }
 }

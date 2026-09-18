@@ -141,7 +141,8 @@ final class NotchController {
         let rows = max(store.activeSessions.count, 1)
         let size = m.windowSize(expanded: ui.hovered,
                                 active: store.overall.isVisible,
-                                rows: rows)
+                                rows: rows,
+                                state: store.overall.asSessionState)
         setWindowSize(size, on: screen)
     }
 

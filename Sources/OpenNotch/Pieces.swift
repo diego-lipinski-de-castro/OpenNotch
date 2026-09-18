@@ -111,29 +111,55 @@ struct Hairline: View {
     }
 }
 
+/// Two menu items, not a settings pane.
+///
+/// This was an AppKit checkbox beside a plain text button, which is two control
+/// vocabularies in a 30pt row: the checkbox brought its own metrics and system
+/// tinting, so nothing lined up and the one piece of chrome in the product was
+/// sitting in the corner of an otherwise black panel. A leading checkmark that
+/// occupies its slot whether or not it is drawn is how the system's own menus
+/// show a toggled item, and it lets both controls share one font and one
+/// baseline.
 struct PanelFooter: View {
     @ObservedObject var ui: NotchUIModel
 
     @Environment(\.ink) private var ink
 
     var body: some View {
-        HStack(spacing: 10) {
-            Toggle(isOn: Binding(
-                get: { ui.launchAtLogin },
-                set: { ui.launchAtLogin = LoginItem.set($0) }
-            )) {
-                Text("Open at login").font(.system(size: 10))
+        HStack(spacing: 0) {
+            Button {
+                ui.launchAtLogin = LoginItem.set(!ui.launchAtLogin)
+            } label: {
+                HStack(spacing: 5) {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 8, weight: .bold))
+                        // Reserved, not conditional: a label that shifts
+                        // sideways when you toggle it is the tell.
+                        .opacity(ui.launchAtLogin ? 1 : 0)
+                        .frame(width: 8, alignment: .leading)
+                    Text("Open at login")
+                }
+                .foregroundStyle(Palette.ink(ui.launchAtLogin ? ink.secondary : ink.tertiary))
+                .contentShape(Rectangle())
             }
-            .toggleStyle(.checkbox)
-            .foregroundStyle(Palette.ink(ink.tertiary))
+            .accessibilityLabel("Open at login")
+            .accessibilityAddTraits(ui.launchAtLogin ? [.isSelected] : [])
 
-            Spacer()
+            Spacer(minLength: 12)
 
-            Button("Quit") { NSApplication.shared.terminate(nil) }
-                .buttonStyle(.plain)
-                .font(.system(size: 10, weight: .medium))
-                .foregroundStyle(Palette.ink(ink.tertiary))
+            Button {
+                NSApplication.shared.terminate(nil)
+            } label: {
+                Text("Quit")
+                    .foregroundStyle(Palette.ink(ink.tertiary))
+                    .contentShape(Rectangle())
+            }
         }
+        // One font and one button style for both, which is what makes them
+        // share a baseline.
+        .font(.system(size: 10, weight: .medium))
+        .buttonStyle(.plain)
+        .frame(maxHeight: .infinity)
         .overlay(alignment: .top) { Hairline() }
     }
 }

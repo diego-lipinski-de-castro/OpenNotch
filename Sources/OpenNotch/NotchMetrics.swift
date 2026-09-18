@@ -8,11 +8,29 @@ struct NotchMetrics: Equatable {
     /// False on displays without a cutout, where the idle shape must not be drawn.
     var hasNotch: Bool = true
 
-    // Collapsed-but-active: how far the shape spills past the cutout.
-    var wing: CGFloat = 30
-    /// A shallow lip below the cutout — enough for the rounded corners to read
-    /// as the notch widening, without a band of empty black.
-    var depth: CGFloat = 6
+    /// How far the shape spills past the cutout on each side, and how deep the
+    /// lip below it runs. Both scale with how much the state needs a human:
+    /// running is the normal case and stays nearly silent, waiting takes the
+    /// whole edge. A state that cost the same as every other state would make
+    /// the indicator say only "something is happening", which the user already
+    /// knows.
+    func wing(_ state: SessionState) -> CGFloat {
+        switch state {
+        case .idle:         return 0
+        case .running:      return 26
+        case .waiting:      return 34
+        case .done, .error: return 32
+        }
+    }
+
+    func depth(_ state: SessionState) -> CGFloat {
+        switch state {
+        case .idle:         return 0
+        case .running:      return 5
+        case .waiting:      return 11
+        case .done, .error: return 8
+        }
+    }
 
     // Expanded panel. Rows carry two lines, so they are taller than the label
     // alone would need.
@@ -28,31 +46,37 @@ struct NotchMetrics: Equatable {
         return active ? 7 : 0
     }
 
-    func bottomRadius(expanded: Bool, active: Bool) -> CGFloat {
+    /// Tracks the lip, so the corner never eats more than the lip is deep.
+    func bottomRadius(expanded: Bool, state: SessionState) -> CGFloat {
         if expanded { return 22 }
-        return active ? 11 : 0
+        switch state {
+        case .idle:         return 0
+        case .running:      return 9
+        case .waiting:      return 14
+        case .done, .error: return 12
+        }
     }
 
     /// Width of the black body (excluding the flares).
-    func bodyWidth(expanded: Bool, active: Bool) -> CGFloat {
+    func bodyWidth(expanded: Bool, state: SessionState) -> CGFloat {
         if expanded { return expandedWidth }
-        return active ? notchWidth + wing * 2 : notchWidth
+        return notchWidth + wing(state) * 2
     }
 
-    func bodyHeight(expanded: Bool, active: Bool, rows: Int) -> CGFloat {
+    func bodyHeight(expanded: Bool, rows: Int, state: SessionState) -> CGFloat {
         if expanded {
             let list = CGFloat(max(rows, 1)) * rowHeight
             return notchHeight + list + footerHeight + expandedPadding
         }
-        return active ? notchHeight + depth : notchHeight
+        return notchHeight + depth(state)
     }
 
     /// Full window size, including room for the flares on both sides.
-    func windowSize(expanded: Bool, active: Bool, rows: Int) -> CGSize {
+    func windowSize(expanded: Bool, active: Bool, rows: Int, state: SessionState) -> CGSize {
         let flare = topRadius(expanded: expanded, active: active)
         return CGSize(
-            width: bodyWidth(expanded: expanded, active: active) + flare * 2,
-            height: bodyHeight(expanded: expanded, active: active, rows: rows)
+            width: bodyWidth(expanded: expanded, state: state) + flare * 2,
+            height: bodyHeight(expanded: expanded, rows: rows, state: state)
         )
     }
 }
