@@ -26,8 +26,20 @@ final class SourceRegistry: ObservableObject {
                                    accent: Color(hex: "#D97757")),
         "codex": SourceStyle(id: "codex", name: "Codex",
                              symbol: "chevron.left.forwardslash.chevron.right",
-                             vector: nil,
+                             vector: BuiltInIcons.openAI,
                              accent: Color(hex: "#10A37F")),
+        "cursor": SourceStyle(id: "cursor", name: "Cursor",
+                              symbol: "cube",
+                              vector: BuiltInIcons.cursor,
+                              accent: Color(hex: "#E4E4E4")),
+        "gemini": SourceStyle(id: "gemini", name: "Gemini",
+                              symbol: "sparkles",
+                              vector: BuiltInIcons.gemini,
+                              // The middle of the mark's own blue-to-violet
+                              // gradient. The panel fills a mark with one
+                              // colour, and the end stops are either too dim
+                              // or too pale against pure black.
+                              accent: Color(hex: "#8E9BFF")),
         "shell": SourceStyle(id: "shell", name: "Shell",
                              symbol: "terminal", vector: nil, accent: nil)
     ]

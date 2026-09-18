@@ -1,5 +1,9 @@
 #!/bin/bash
-# Builds OpenNotch.app into ./build. Pass --install to also copy it to /Applications.
+# Builds OpenNotch.app into ./build.
+#
+#   --install     also copy it to /Applications and launch it
+#   --universal   build for Apple silicon and Intel, for a build you intend to
+#                 hand to someone else
 set -euo pipefail
 
 cd "$(dirname "$0")"
@@ -8,9 +12,19 @@ BUNDLE_ID="com.castro.opennotch"
 VERSION="1.0"
 OUT="build/${APP_NAME}.app"
 
-echo "==> Building release binary"
-swift build -c release
-BIN="$(swift build -c release --show-bin-path)/${APP_NAME}"
+DO_INSTALL=0
+ARCHS=()
+for arg in "$@"; do
+  case "$arg" in
+    --install)   DO_INSTALL=1 ;;
+    --universal) ARCHS=(--arch arm64 --arch x86_64) ;;
+    *) echo "build: unknown option '$arg'" >&2; exit 2 ;;
+  esac
+done
+
+echo "==> Building release binary${ARCHS:+ (universal)}"
+swift build -c release "${ARCHS[@]+"${ARCHS[@]}"}"
+BIN="$(swift build -c release "${ARCHS[@]+"${ARCHS[@]}"}" --show-bin-path)/${APP_NAME}"
 
 echo "==> Assembling ${OUT}"
 rm -rf "$OUT"
@@ -62,7 +76,7 @@ rm -rf "$ICONTMP"
 echo "==> Signing (ad-hoc)"
 codesign --force --deep --sign - "$OUT" >/dev/null 2>&1 || echo "    (codesign skipped)"
 
-if [[ "${1:-}" == "--install" ]]; then
+if [[ "$DO_INSTALL" == 1 ]]; then
   echo "==> Installing to /Applications"
   pkill -x "$APP_NAME" 2>/dev/null || true
   rm -rf "/Applications/${APP_NAME}.app"

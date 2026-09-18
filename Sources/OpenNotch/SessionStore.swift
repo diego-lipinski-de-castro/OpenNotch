@@ -82,6 +82,11 @@ final class SessionStore: ObservableObject {
     /// anything that needs the committed values hangs off this instead.
     var onChange: (() -> Void)?
 
+    /// Called once a second, after `now` has moved. Separate from `onChange`
+    /// because that one reloads the client registry off disk, and a clock
+    /// ticking is not a reason to go and read a file.
+    var onTick: (() -> Void)?
+
     private let directory: URL
     private var watcher: DispatchSourceFileSystemObject?
     private var dirFD: CInt = -1
@@ -174,7 +179,7 @@ final class SessionStore: ObservableObject {
             reload()
             return
         }
-        if recomputeOverall() { onChange?() }
+        if recomputeOverall() { onChange?() } else { onTick?() }
     }
 
     private func isDead(_ pid: pid_t?) -> Bool {

@@ -75,6 +75,29 @@ enum Palette {
         OKLCH(l: 0.97, c: 0.006, h: baseHue).color.opacity(opacity)
     }
 
+    /// The specular edge along the expanded panel's silhouette.
+    ///
+    /// Collapsed, the panel is pretending to be a hole in the display and gets
+    /// no edge at all. Expanded, it is a 436pt menu and pretending otherwise
+    /// costs it its outline: pure black on a dark window behind it has no
+    /// boundary, and the panel visibly loses its own shape. One hairline of
+    /// light, brightest where the silhouette turns away from the screen, is
+    /// what the system puts on every panel it draws, and it is the cheapest
+    /// possible way to give this one a body.
+    static var rim: LinearGradient {
+        LinearGradient(stops: [
+            .init(color: ink(0.02), location: 0),
+            .init(color: ink(0.05), location: 0.35),
+            .init(color: ink(0.16), location: 0.88),
+            .init(color: ink(0.13), location: 1)
+        ], startPoint: .top, endPoint: .bottom)
+    }
+
+    /// Menu-item highlight. Neutral rather than the system accent: the accent
+    /// would be the only saturated colour on the panel that did not mean a
+    /// state, and every colour here means a state.
+    static func highlight(_ on: Bool) -> Color { ink(on ? 0.1 : 0) }
+
     static func color(for state: SessionState) -> Color {
         switch state {
         case .running: return running
@@ -115,8 +138,13 @@ struct InkScale: Equatable {
     var rule: Double
 
     /// tertiary 0.50 measures 4.9:1 against the body; 0.45 measures 4.1:1.
-    static let standard = InkScale(primary: 0.95, secondary: 0.74, tertiary: 0.50, rule: 0.08)
-    static let increased = InkScale(primary: 1, secondary: 0.90, tertiary: 0.76, rule: 0.20)
+    ///
+    /// `rule` is not text and is not held to that floor, but 0.08 on black was
+    /// below the point where a separator separates anything — the rows ran
+    /// together into one block. 0.12 is roughly where the system's own dark
+    /// menus sit.
+    static let standard = InkScale(primary: 0.95, secondary: 0.74, tertiary: 0.50, rule: 0.12)
+    static let increased = InkScale(primary: 1, secondary: 0.90, tertiary: 0.76, rule: 0.26)
 }
 
 private struct InkScaleKey: EnvironmentKey {

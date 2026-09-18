@@ -21,14 +21,29 @@ needs you first.
 | State | Look |
 |---|---|
 | Idle | nothing — the panel matches the cutout exactly |
-| Running | the client's own mark, turning, + live elapsed time |
+| Running | the client's own mark, still, + live elapsed time |
 | Waiting for you | amber pulsing dot |
 | Finished | green check + how long the turn took, fades after 9s |
 | Failed | red, with the duration |
 
 While a turn runs, the glyph beside the cutout is the client's own mark — the
-Claude symbol for Claude Code — turning slowly, in the client's colour. A client
-with no mark of its own falls back to a neutral spinner.
+Claude symbol for Claude Code — in the client's colour, and it does not move.
+Running is the normal case, and anything that moves in the corner of your eye
+all day is something you train yourself to stop seeing. The elapsed time beside
+it ticks once a second, which is all the proof of life a running turn needs.
+
+Nothing in the product rotates, and nothing moves except **waiting**, which
+pulses and gives one extra beat at the moment it starts. Motion means a human is
+needed, and nothing else — which only works if it is the only thing moving.
+
+In the hover panel a running turn gets no badge at all: the row already names
+the client on the left and shows a clock on the right, and running is the
+ordinary case. A badge is for the exceptions.
+
+Identity and state never share a slot. In the hover panel the leading column is
+always the client's mark and the trailing column is always the state, so the one
+moment you most need to know *which* client is asking for something is not the
+moment the client stops being named.
 
 Several sessions at once collapse to a count; hover for the list, sorted so the
 sessions blocked on you are on top. Each row carries the session's name and the
@@ -57,7 +72,16 @@ events onto five states.
 |---|---|---|
 | Claude Code | hooks in `~/.claude/settings.json` | `Notification` is the "waiting" signal |
 | Codex | hooks in `~/.codex/hooks.json` | has `PermissionRequest` and `Interrupt`, so it is more precise |
+| Cursor | hooks in `~/.cursor/hooks.json` | no event means "blocked on you", so it never shows amber |
+| Gemini | hooks in `~/.gemini/settings.json` | `Notification` is the "waiting" signal, as in Claude Code |
 | anything else | `opennotch wrap -- <cmd>` | no integration needed from the tool |
+
+Cursor is the one client with a gap. Its hook vocabulary has nothing that means
+a human is being waited on: `beforeShellExecution` looks like it does and fires
+before Cursor has decided whether to ask, so on an auto-approving setup it would
+turn the notch amber on every command the agent ran. Amber is the loudest thing
+this product does and the only one that asks for you, so it is left unspent
+rather than spent wrongly. Cursor sessions show running, done and error.
 
 Adding one is a directory under `adapters/` — see **[adapters/README.md](adapters/README.md)**.
 The shortest version:
@@ -123,7 +147,12 @@ finishing never marks the whole session done.
 - `OPENNOTCH_DEBUG=1` logs hover polling and window placement.
 - `Tools/demo.sh tour` walks the notch through every state without an agent.
 - On a display without a cutout the idle panel is an invisible hover strip at
-  the top centre and the active state renders as a floating pill.
+  the top centre, and the active state is a black bar hanging from the top with
+  the same silhouette.
+- `Tools/render-states.sh` draws every state to PNGs without putting anything on
+  screen, which is how the shape and the panel get looked at: it compiles the
+  app's own views, so it is the real thing rather than a mock, and it works on a
+  machine whose display is asleep.
 - Tunables: `NotchMetrics.swift` (sizes), `Palette.swift` (colours, authored in
-  OKLCH), `SessionStore.doneLinger` / `.staleAfter` (timings). The mark's
-  rotation is one `withAnimation` in `StatusGlyph` — drop it for a static icon.
+  OKLCH), `Motion.swift` (every animation in the product), `SessionStore.doneLinger`
+  / `.staleAfter` (timings).
