@@ -452,11 +452,16 @@ struct PanelFooter: View {
             .accessibilityAddTraits(ui.launchAtLogin ? [.isSelected] : [])
         }
         // One font and one button style for both, which is what makes them
-        // share a baseline. The inset cancels the style's own padding, so the
-        // labels line up with the rows above rather than the highlights do.
+        // share a baseline. The highlights sit in the gutter rather than being
+        // pulled out of it to line the labels up with the rows above: the
+        // gutter is only nine points of black wide once the shoulders are
+        // taken off it, so cancelling the style's padding left the highlight
+        // two points from the panel's edge, overshooting the hairline it sits
+        // under and running into the corner. Aligned to the hairline instead,
+        // the labels give up seven points of agreement with the marks above
+        // and the footer gains an edge the eye can find.
         .font(.system(size: 12))
         .buttonStyle(MenuItemStyle())
-        .padding(.horizontal, -7)
         .frame(maxHeight: .infinity)
     }
 }
