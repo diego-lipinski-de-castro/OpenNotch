@@ -93,16 +93,25 @@ struct StatusGlyph: View {
 
     /// Running.
     ///
-    /// Beside the cutout it is the client's own mark, standing still. Inside the
+    /// Beside the cutout it is the client's own mark, breathing. Inside the
     /// panel it is nothing at all: the row already names the client on the left
     /// and shows a clock on the right, and a turn in flight is the ordinary case
     /// — the case that earns no badge.
     ///
-    /// Nothing in the product rotates any more. A turn in flight is what the
-    /// notch looks like for most of the working day, and something moving in the
-    /// corner of your eye all day is something you train yourself to stop
-    /// seeing — which costs you the one state that genuinely needs you. Motion
-    /// now means waiting, everywhere, and nothing else.
+    /// Nothing rotates, and nothing here travels: the mark keeps its place, its
+    /// size and its colour, and only its arms lengthen and shorten, by about a
+    /// point each, in an order that never resolves into a direction. That is
+    /// the whole point of the shape it was given — there is nothing in it for
+    /// the eye to follow, so it does not pull at you from the edge of vision
+    /// the way a spinner does. You see it when you look at the notch.
+    ///
+    /// Waiting keeps every louder register to itself. An arm here takes 1.25s
+    /// to go out and the same to come back, against the pulse's 0.85s each way
+    /// — but the gap that matters is not the tempo, it is what moves: waiting
+    /// takes the whole glyph up and down in size and down to half opacity,
+    /// while running never changes size, position or opacity at all and only
+    /// ever redraws its own outline. That is what keeps them apart at a glance,
+    /// which is the only test either of them has to pass.
     @ViewBuilder
     private var runningMark: some View {
         if !showsIdentity {
@@ -110,7 +119,7 @@ struct StatusGlyph: View {
             // still cross rather than pop.
             Color.clear
         } else if let style {
-            SourceMark(style: style, size: size * 0.8)
+            SourceMark(style: style, size: size * 0.8, breathing: true)
         } else {
             // No client to speak for: an outline, which is still a silhouette
             // no other state uses. Never a filled disc — that is waiting.
@@ -145,17 +154,106 @@ struct StatusGlyph: View {
 
 /// A client's identifying mark: its own vector if it has one, else its
 /// SF Symbol, else the generic fallback. Identity only — never state.
+///
+/// `breathing` is the one exception, and only just: it does not change which
+/// mark is drawn or how it reads, it only lets the one already standing there
+/// show that its turn is still going. It is set beside the cutout, and on the
+/// panel row belonging to a session that is mid-turn — the same mark, saying
+/// the same thing, in both places.
 struct SourceMark: View {
     let style: SourceStyle
     var size: CGFloat = 14
+    /// True while this client's turn is in flight. Turning it off does not cut
+    /// the breath off where it stood: the mark eases back to the shape it was
+    /// drawn as, and only then stops being redrawn at all.
+    var breathing: Bool = false
 
     @Environment(\.ink) private var ink
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    /// How far an arm reaches past where it was drawn, as a share of its own
+    /// length: about a point either way at the 12.8pt the mark gets beside the
+    /// cutout, so a bit over two points between an arm at full stretch and the
+    /// same arm drawn back. Tuned at that size and nowhere else.
+    ///
+    /// This started at half as much, which was the right answer on paper and
+    /// the wrong one on a screen: correct in the frame-by-frame sheet, and in
+    /// the menu bar barely there at all. A mark 12.8pt across has very little
+    /// room to say anything, and a tenth of that is under what you notice
+    /// without staring. Past about 0.22 the arms come out uneven enough that
+    /// the mark reads as drawn wrong rather than as moving, so this is roughly
+    /// two thirds of the way to where the brand starts to suffer.
+    ///
+    /// Not private only so the render harness can lay out one breath as frames.
+    static let breathDepth: CGFloat = 0.16
+
+    /// One breath: 2.5s for every arm to go out and come back once. Not much
+    /// over the waiting pulse's 1.7s, and deliberately not much under either —
+    /// slower than this and the tips travel so little per second that the mark
+    /// stops reading as moving and starts reading as being redrawn wrong.
+    private static let period: TimeInterval = 2.5
+
+    /// How long the breath takes to swell in at the start of a turn, and to die
+    /// away at the end of one. Short enough to be over before you have finished
+    /// reading the row, long enough that neither end is a twitch.
+    private static let settle: TimeInterval = 0.45
+
+    /// The breath is read off the clock rather than animated.
+    ///
+    /// It has two jobs at once — loop forever, and swell in or die away at the
+    /// ends — and a `Shape` has exactly one `animatableData`, so a looping
+    /// phase and a fading depth cannot both be in flight: whichever was set
+    /// last takes the other over. It also has to stop *well*. A repeating
+    /// animation cancelled mid-cycle leaves the arms wherever the frame
+    /// happened to fall, which on a finished turn is a visible flinch in the
+    /// one column that is supposed to be holding still. Three dates and a
+    /// number have neither problem, and they make every frame a pure function
+    /// of the time it is drawn at.
+    ///
+    /// When this breath began, which is what fixes the cycle:
+    @State private var started: Date?
+    /// when the depth last began rising, which is a different instant if the
+    /// breath was stopped and started again before it had settled;
+    @State private var rising: Date?
+    /// and when it was told to stop, with the depth it had reached by then, so
+    /// the fade starts from what is actually on screen.
+    @State private var stopping: Date?
+    @State private var stoppingFrom: CGFloat = 0
+
+    /// An SF Symbol cannot be deformed the way a path can, so a client with no
+    /// vector of its own simply does not breathe. Nothing is lost: what the
+    /// breath says is already said, in words, by the clock beside it.
+    private var wants: Bool { breathing && !reduceMotion && style.vector != nil }
 
     var body: some View {
         let tint = style.accent ?? Palette.ink(ink.secondary)
         Group {
             if let vector = style.vector {
-                VectorIconShape(icon: vector).fill(tint)
+                // Paused once it is at rest, which is most of the time: a mark
+                // that is not breathing costs exactly what it did before any of
+                // this, which is nothing.
+                TimelineView(.animation(paused: started == nil)) { frame in
+                    VectorIconShape(icon: vector,
+                                    phase: phase(at: frame.date),
+                                    amplitude: depth(at: frame.date))
+                        .fill(tint)
+                }
+                // An arm at full stretch reaches a point or so past the frame
+                // the mark was given — the mark is drawn to fill that frame, and
+                // the breath is on top of it. Overflowing is ordinary in SwiftUI
+                // and was harmless while the only breathing mark sat inside a
+                // roomier glyph, but in a panel row the frame is the tight one,
+                // and there the overflowing half of every cycle was dropped on
+                // the floor: the second row's mark vanished for half of each
+                // breath and came back for the other half, which is a mark
+                // blinking about once a second. Drawing into a group of its own
+                // first means what leaves the frame is still part of one
+                // finished image, and it is composited or not as a whole.
+                //
+                // Measured off the screen rather than off the view: 24 window
+                // captures during a breath, second mark missing in 12 of them
+                // without this and none with it.
+                .compositingGroup()
             } else {
                 Image(systemName: style.symbol)
                     .font(.system(size: size * 0.82, weight: .medium))
@@ -163,6 +261,55 @@ struct SourceMark: View {
             }
         }
         .frame(width: size, height: size)
+        .onAppear { if wants { begin() } }
+        .onChange(of: wants) { _, now in now ? begin() : end() }
+    }
+
+    /// Where in the cycle this frame falls. Counted from `started` rather than
+    /// accumulated frame by frame, so it cannot drift and a dropped frame costs
+    /// nothing.
+    private func phase(at now: Date) -> CGFloat {
+        guard let started else { return 0 }
+        let turns = now.timeIntervalSince(started) / Self.period
+        return CGFloat(turns - turns.rounded(.down))
+    }
+
+    private func depth(at now: Date) -> CGFloat {
+        if let stopping {
+            let left = 1 - now.timeIntervalSince(stopping) / Self.settle
+            return stoppingFrom * CGFloat(min(1, max(0, left)))
+        }
+        guard let rising else { return 0 }
+        let up = now.timeIntervalSince(rising) / Self.settle
+        return Self.breathDepth * CGFloat(min(1, max(0, up)))
+    }
+
+    private func begin() {
+        let now = Date()
+        // Starting again mid-fade picks the depth up where the fade left it,
+        // and keeps the cycle it already had. Only a breath that had fully
+        // settled starts over from nothing.
+        let resume = Double(depth(at: now) / Self.breathDepth)
+        if started == nil { started = now }
+        rising = now.addingTimeInterval(-Self.settle * resume)
+        stopping = nil
+    }
+
+    private func end() {
+        guard started != nil, stopping == nil else { return }
+        stoppingFrom = depth(at: Date())
+        stopping = Date()
+        // Cleared once the fade is over, which is what lets the timeline pause.
+        // If the turn started again in the meantime, `stopping` is nil by now
+        // and this has nothing to do.
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(Self.settle))
+            guard stopping != nil else { return }
+            started = nil
+            rising = nil
+            stopping = nil
+            stoppingFrom = 0
+        }
     }
 }
 

@@ -99,6 +99,38 @@ enum Harness {
         .background(Color.black)
     }
 
+    /// One breath, laid out as frames, because the thing it has to be judged
+    /// against is itself a moment earlier. Each client's mark twice: once at
+    /// four times size, where the deformation is easy to read, and once at the
+    /// 12.8pt it is actually drawn at, where the only question is whether the
+    /// change between neighbouring frames is too much or too little.
+    static func breathSheet(_ registry: SourceRegistry) -> some View {
+        let phases: [CGFloat] = [0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875]
+        return VStack(alignment: .leading, spacing: 18) {
+            ForEach(["claude-code", "codex", "cursor", "gemini"], id: \.self) { id in
+                let style = registry.style(for: id)
+                if let vector = style.vector {
+                    HStack(spacing: 20) {
+                        ForEach(Array(phases.enumerated()), id: \.offset) { _, phase in
+                            VStack(spacing: 9) {
+                                VectorIconShape(icon: vector, phase: phase,
+                                                amplitude: SourceMark.breathDepth)
+                                    .fill(style.accent ?? .white)
+                                    .frame(width: 51.2, height: 51.2)
+                                VectorIconShape(icon: vector, phase: phase,
+                                                amplitude: SourceMark.breathDepth)
+                                    .fill(style.accent ?? .white)
+                                    .frame(width: 12.8, height: 12.8)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        .padding(24)
+        .background(Color.black)
+    }
+
     static func run() {
         let registry = SourceRegistry(file: URL(fileURLWithPath: "/nonexistent"))
         var metrics = NotchMetrics()
@@ -119,6 +151,9 @@ enum Harness {
 
         write("glyphs", glyphSheet(registry).frame(maxHeight: .infinity, alignment: .top),
               size: CGSize(width: 620, height: 330))
+
+        write("breath", breathSheet(registry).frame(maxHeight: .infinity, alignment: .top),
+              size: CGSize(width: 620, height: 380))
 
         // Every client mark at the size it appears in a row, and much larger,
         // because a path that parsed wrong is obvious at 96pt and invisible

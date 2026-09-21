@@ -165,7 +165,11 @@ private struct SessionRow: View {
 
     var body: some View {
         HStack(spacing: 11) {
-            SourceMark(style: style, size: 16)
+            // The mark breathes for exactly as long as this row's turn does.
+            // The trailing column says what state the session is in; this says
+            // whether it is still going, in the same words the collapsed
+            // indicator uses, so the panel is not a second vocabulary.
+            SourceMark(style: style, size: 16, breathing: state == .running)
 
             VStack(alignment: .leading, spacing: 1) {
                 Text(session.title)

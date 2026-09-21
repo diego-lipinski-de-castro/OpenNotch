@@ -1,4 +1,5 @@
 import CoreGraphics
+import Foundation
 import SwiftUI
 
 /// A client's brand mark, supplied as SVG path data so an icon is data rather
@@ -27,11 +28,24 @@ struct VectorIcon: Equatable {
 /// Scales a parsed SVG path to fit a rect, preserving aspect ratio.
 /// SVG and SwiftUI both put the origin top-left with y growing downward, so
 /// there is no flip to undo.
+///
+/// With a non-zero `amplitude` the mark also *breathes*: see `breathed`.
 struct VectorIconShape: Shape {
     let icon: VectorIcon
+    /// Where the breath has got to, in turns. The wave is periodic in 1, so 0
+    /// and 1 are the same frame and a loop can restart without a seam.
+    ///
+    /// Deliberately not `animatableData`. Both of these are handed a finished
+    /// value per frame by whoever is driving the breath, and a shape that also
+    /// interpolated them would be interpolating between two frames that are
+    /// already one frame apart.
+    var phase: CGFloat = 0
+    /// How far the breath carries, as a fraction of each point's own distance
+    /// from the middle of the mark. Zero draws the mark exactly as authored.
+    var amplitude: CGFloat = 0
 
     func path(in rect: CGRect) -> Path {
-        let parsed = SVGPath.parse(icon.data)
+        let parsed = SVGPath.cached(icon.data)
         let box = icon.viewBox
         guard box.width > 0, box.height > 0 else { return parsed }
         let scale = min(rect.width / box.width, rect.height / box.height)
@@ -39,7 +53,68 @@ struct VectorIconShape: Shape {
             translationX: rect.midX - box.midX * scale,
             y: rect.midY - box.midY * scale
         ).scaledBy(x: scale, y: scale)
-        return parsed.applying(transform)
+        guard amplitude > 0 else { return parsed.applying(transform) }
+        return parsed.breathed(phase: phase, amplitude: amplitude).applying(transform)
+    }
+}
+
+extension Path {
+    /// The mark quietly inhaling and exhaling, one arm at a time.
+    ///
+    /// Every point is pushed along its own radius from the middle of the mark
+    /// by a fraction of how far out it already is, so the middle is nailed down
+    /// and only the tips travel — arms lengthen and shorten rather than the
+    /// whole thing scaling, which is the difference between something alive and
+    /// something being zoomed.
+    ///
+    /// Which arm is out at any moment comes from two waves wrapped around the
+    /// mark, one with three lobes and one with five, turning in opposite
+    /// directions at the same rate. Counter-turning is the point: either wave
+    /// alone is a pattern visibly going round, and the eye locks onto anything
+    /// going round. Against each other they only beat, so arms rise and fall in
+    /// an order you cannot predict and never resolve into a direction. Three
+    /// and five are also what keeps the Claude mark's twelve arms apart: three
+    /// alone would put every fourth arm in step and leave a square beating in
+    /// the middle of it, and against five nothing lines up short of the same
+    /// arm coming round again — all twelve are at twelve different points of
+    /// the breath at every instant.
+    func breathed(phase: CGFloat, amplitude: CGFloat) -> Path {
+        let bounds = boundingRect
+        guard bounds.width > 0, bounds.height > 0 else { return self }
+        let mid = CGPoint(x: bounds.midX, y: bounds.midY)
+        let turn = 2 * CGFloat.pi
+
+        func moved(_ p: CGPoint) -> CGPoint {
+            let dx = p.x - mid.x, dy = p.y - mid.y
+            let r = (dx * dx + dy * dy).squareRoot()
+            guard r > 1e-6 else { return p }
+            let theta = atan2(dy, dx)
+            let wave = 0.62 * sin(3 * theta + turn * phase)
+                     + 0.38 * sin(5 * theta - turn * phase + 0.9)
+            let k = 1 + amplitude * wave
+            return CGPoint(x: mid.x + dx * k, y: mid.y + dy * k)
+        }
+
+        var out = Path()
+        forEach { element in
+            switch element {
+            case .move(let to):
+                out.move(to: moved(to))
+            case .line(let to):
+                out.addLine(to: moved(to))
+            case .quadCurve(let to, let control):
+                out.addQuadCurve(to: moved(to), control: moved(control))
+            case .curve(let to, let control1, let control2):
+                // Control points ride the same displacement as the ends they
+                // belong to, which keeps a blade's edges parallel as it moves
+                // instead of letting the curve bulge sideways.
+                out.addCurve(to: moved(to),
+                             control1: moved(control1), control2: moved(control2))
+            case .closeSubpath:
+                out.closeSubpath()
+            }
+        }
+        return out
     }
 }
 
@@ -114,6 +189,39 @@ enum SVGPath {
             default: return nil
             }
         }
+    }
+
+    /// Parsed once per distinct `d` string.
+    ///
+    /// Parsing was cheap enough when a mark was drawn once and then sat still:
+    /// 200µs, once. A breathing mark asks for its path sixty times a second for
+    /// as long as a turn runs, and the answer to the parse never changes — only
+    /// what is done to it afterwards does.
+    ///
+    /// Behind a lock, and holding a `CGPath` rather than a `Path`, because a
+    /// shape is not asked for its path on the main thread alone. Reading this
+    /// dictionary while another mark writes it is a data race; handing a
+    /// `Path` between threads before it has realised its storage is a second
+    /// one. Either shows up as the odd frame where the mark comes out empty,
+    /// which on screen is the mark blinking — rare enough to look like a
+    /// display glitch and frequent enough to be maddening. A `CGPath` is
+    /// immutable once built, so the dictionary is the only thing left to guard.
+    private static let lock = NSLock()
+    private static var parsed: [String: CGPath] = [:]
+
+    static func cached(_ d: String) -> Path {
+        lock.lock()
+        let hit = parsed[d]
+        lock.unlock()
+        if let hit { return Path(hit) }
+        // Two marks arriving together may both parse the same string. That
+        // costs one extra parse; holding the lock across the parse would cost
+        // every other mark on screen a wait for it.
+        let built = parse(d).cgPath
+        lock.lock()
+        parsed[d] = built
+        lock.unlock()
+        return Path(built)
     }
 
     static func parse(_ d: String) -> Path {

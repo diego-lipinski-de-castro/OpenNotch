@@ -21,24 +21,33 @@ needs you first.
 | State | Look |
 |---|---|
 | Idle | nothing — the panel matches the cutout exactly |
-| Running | the client's own mark, still, + live elapsed time |
+| Running | the client's own mark, breathing, + live elapsed time |
 | Waiting for you | amber pulsing dot |
 | Finished | green check + how long the turn took, fades after 9s |
 | Failed | red, with the duration |
 
 While a turn runs, the glyph beside the cutout is the client's own mark — the
-Claude symbol for Claude Code — in the client's colour, and it does not move.
-Running is the normal case, and anything that moves in the corner of your eye
-all day is something you train yourself to stop seeing. The elapsed time beside
-it ticks once a second, which is all the proof of life a running turn needs.
+Claude symbol for Claude Code — in the client's colour, and it breathes: each
+arm of the mark reaches out and draws back by about a point, on a slow
+two-and-a-half-second cycle, while the mark keeps its place, its size and its
+colour. Two waves wrapped around it turn against each other, so the arms rise
+and fall in an order that never settles into a direction — there is nothing
+going round for the eye to follow. Running is the normal case, and the normal
+case has to be something you can sit beside all day.
 
-Nothing in the product rotates, and nothing moves except **waiting**, which
-pulses and gives one extra beat at the moment it starts. Motion means a human is
-needed, and nothing else — which only works if it is the only thing moving.
+Nothing in the product rotates. **Waiting** keeps every louder register to
+itself: it takes the whole glyph up and down in size and down to half opacity on
+every beat, with one extra beat at the moment it starts, where running never
+changes size, position or opacity at all. Motion that asks for you still means
+waiting and nothing else.
 
 In the hover panel a running turn gets no badge at all: the row already names
 the client on the left and shows a clock on the right, and running is the
-ordinary case. A badge is for the exceptions.
+ordinary case. A badge is for the exceptions. The mark in the row's leading
+column breathes for exactly as long as that session's turn does, the same way
+the collapsed one does — and when the turn finishes it does not cut off where it
+stood, it eases back to the mark as drawn over about half a second and then
+stops being redrawn at all. Marks that are not breathing cost nothing.
 
 Identity and state never share a slot. In the hover panel the leading column is
 always the client's mark and the trailing column is always the state, so the one
